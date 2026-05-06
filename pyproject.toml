@@ -43,6 +43,10 @@ cli = ["static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Put the repo root on sys.path so `from adversarial.* import ...` works
+# during test collection without requiring `pip install -e .` to register
+# the adversarial subtree as a separate package.
+pythonpath = ["."]
 addopts = "-ra --strict-markers"
 markers = [
     "unit: fast isolated unit tests",
