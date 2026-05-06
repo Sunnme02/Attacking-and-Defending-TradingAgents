@@ -1,5 +1,9 @@
 # Attacking and Defending Multi-Agent LLM Trading Systems
 
+[![tests](https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/actions/workflows/tests.yml/badge.svg)](https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/actions/workflows/tests.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
 > Adversarial robustness study of [TradingAgents](https://github.com/TauricResearch/TradingAgents)
 > against compromised-channel attacks. **1,210 measured trials**, three
 > attacks × three defenses across five tickers and both bullish / bearish
