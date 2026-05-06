@@ -1,0 +1,7 @@
+condition,seed_idx,decision,ordinal
+clean,0,Hold,3
+clean,1,Underweight,2
+a2v2,0,Overweight,4
+a2v2,1,Hold,3
+a5v2,0,Hold,3
+a5v2,1,Underweight,2

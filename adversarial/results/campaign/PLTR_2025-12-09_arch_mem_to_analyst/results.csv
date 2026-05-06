@@ -1,0 +1,16 @@
+condition,seed_idx,decision,ordinal
+clean,0,Hold,3
+clean,1,Underweight,2
+clean,2,Underweight,2
+clean,3,Hold,3
+clean,4,Underweight,2
+a5v2,0,Hold,3
+a5v2,1,Buy,5
+a5v2,2,Hold,3
+a5v2,3,Hold,3
+a5v2,4,Underweight,2
+a2v2_a5v2,0,Buy,5
+a2v2_a5v2,1,Hold,3
+a2v2_a5v2,2,Underweight,2
+a2v2_a5v2,3,Hold,3
+a2v2_a5v2,4,Underweight,2

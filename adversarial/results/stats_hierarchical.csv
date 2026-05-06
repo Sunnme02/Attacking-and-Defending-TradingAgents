@@ -1,0 +1,16 @@
+test_family,comparison,n_clusters,delta,ci_lo,ci_hi,p_raw,p_bh
+attack_effect_v1,a1 vs clean,5,0.1139,-0.3,0.4485,0.5928,0.5928
+attack_effect_v1,a2 vs clean,5,-0.2518,-0.5418,0.0264,0.0758,0.2274
+attack_effect_v1,a5 vs clean,5,0.0633,-0.0733,0.2033,0.3642,0.5463
+attack_effect,a2v2 vs clean,5,0.04,-0.1,0.18,0.7266,0.7266
+attack_effect,a2v2_a5v2 vs clean,5,0.1,-0.06,0.26,0.1974,0.2961
+attack_effect,a5v2 vs clean,5,-0.12,-0.28,0.06,0.193,0.2961
+attack_effect_bearish,a1 vs clean,5,-0.02,-0.22,0.12,0.9644,0.9644
+attack_effect_bearish,a2v2 vs clean,5,-0.02,-0.18,0.12,0.9312,0.9644
+attack_effect_bearish,a5v2 vs clean,5,-0.42,-0.68,-0.16,0.0,0.0
+defense_effect,none-d3 | attack=a1,3,0.4667,0.2,1.0,0.0,0.0
+defense_effect,none-d5 | attack=a1,3,0.6667,0.2,1.4,0.0,0.0
+defense_effect,none-d3 | attack=a2v2,3,0.4667,0.2,0.6,0.0,0.0
+defense_effect,none-d5 | attack=a2v2,3,0.4667,0.4,0.6,0.0,0.0
+defense_effect,none-d3 | attack=a2v2_a5v2,3,0.0667,-0.2,0.2,0.5112,0.6134
+defense_effect,none-d5 | attack=a2v2_a5v2,3,-0.0667,-0.4,0.4,0.7344,0.7344

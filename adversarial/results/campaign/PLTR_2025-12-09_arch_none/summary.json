@@ -1,0 +1,58 @@
+{
+  "clean": {
+    "n": 5,
+    "n_with_ordinal": 5,
+    "mean_ordinal": 2.4,
+    "std_ordinal": 1.140175425099138,
+    "distribution": {
+      "Overweight": 1,
+      "Sell": 1,
+      "Hold": 1,
+      "Underweight": 2
+    },
+    "decisions": [
+      "Overweight",
+      "Sell",
+      "Hold",
+      "Underweight",
+      "Underweight"
+    ]
+  },
+  "a5v2": {
+    "n": 5,
+    "n_with_ordinal": 5,
+    "mean_ordinal": 2.4,
+    "std_ordinal": 0.5477225575051661,
+    "distribution": {
+      "Underweight": 3,
+      "Hold": 2
+    },
+    "decisions": [
+      "Underweight",
+      "Underweight",
+      "Hold",
+      "Underweight",
+      "Hold"
+    ],
+    "delta_vs_clean": 0.0
+  },
+  "a2v2_a5v2": {
+    "n": 5,
+    "n_with_ordinal": 5,
+    "mean_ordinal": 2.4,
+    "std_ordinal": 0.8944271909999159,
+    "distribution": {
+      "Underweight": 1,
+      "Hold": 3,
+      "Sell": 1
+    },
+    "decisions": [
+      "Underweight",
+      "Hold",
+      "Sell",
+      "Hold",
+      "Hold"
+    ],
+    "delta_vs_clean": 0.0
+  }
+}

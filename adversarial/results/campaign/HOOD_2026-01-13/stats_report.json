@@ -1,0 +1,81 @@
+{
+  "n_clean": 10,
+  "clean_mean": 1.9,
+  "clean_median": 2.0,
+  "clean_std": 0.31622776601683794,
+  "intended_direction": "bullish",
+  "attacks": {
+    "a1": {
+      "n": 10,
+      "mean": 2.2,
+      "median": 2.0,
+      "std": 0.4216370213557839,
+      "delta_mean": 0.30000000000000027,
+      "delta_mean_ci95": [
+        0,
+        0.6000000000000001
+      ],
+      "mannwhitney_u": 36.0,
+      "mannwhitney_p_two_sided": 0.0883762795843388,
+      "asr_point": 0.2,
+      "asr_succ_point": 2,
+      "asr_n": 10,
+      "asr_bootstrap_mean": 0.20176000000000002,
+      "asr_bootstrap_ci95": [
+        0.2,
+        0.2
+      ],
+      "asr_neutral": 0.0,
+      "absorption_mean": 2,
+      "absorption_full_count": 10
+    },
+    "a2": {
+      "n": 10,
+      "mean": 2,
+      "median": 2.0,
+      "std": 0.4714045207910317,
+      "delta_mean": 0.10000000000000009,
+      "delta_mean_ci95": [
+        -0.19999999999999996,
+        0.40000000000000013
+      ],
+      "mannwhitney_u": 45.5,
+      "mannwhitney_p_two_sided": 0.5838824207703652,
+      "asr_point": 0.1,
+      "asr_succ_point": 1,
+      "asr_n": 10,
+      "asr_bootstrap_mean": 0.10176,
+      "asr_bootstrap_ci95": [
+        0.1,
+        0.1
+      ],
+      "asr_neutral": 0.0,
+      "absorption_mean": 2,
+      "absorption_full_count": 10
+    },
+    "a5": {
+      "n": 10,
+      "mean": 2.1,
+      "median": 2.0,
+      "std": 0.5676462121975467,
+      "delta_mean": 0.20000000000000018,
+      "delta_mean_ci95": [
+        -0.19999999999999996,
+        0.6000000000000001
+      ],
+      "mannwhitney_u": 41.0,
+      "mannwhitney_p_two_sided": 0.329719297312679,
+      "asr_point": 0.2,
+      "asr_succ_point": 2,
+      "asr_n": 10,
+      "asr_bootstrap_mean": 0.20154000000000002,
+      "asr_bootstrap_ci95": [
+        0.2,
+        0.2
+      ],
+      "asr_neutral": 0.0,
+      "absorption_mean": null,
+      "absorption_full_count": 0
+    }
+  }
+}

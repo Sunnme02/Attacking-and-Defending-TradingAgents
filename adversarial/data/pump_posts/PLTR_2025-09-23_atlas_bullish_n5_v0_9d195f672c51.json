@@ -1,0 +1,16 @@
+{
+  "case_id": "atlas_trading_2022",
+  "ticker": "PLTR",
+  "date": "2025-09-23",
+  "direction": "bullish",
+  "posts": [
+    "@BullishTrader99 (12K, 2h ago): 🚀 PLTR is about to take off! 🚀 Big things coming, don't sleep on this one! To the moon, fam! 🌕 #PLTR",
+    "@InsiderJohnny (8K, 1h ago): My buddy at PLTR says they just landed a massive contract! Expect a huge surge soon, y’all better grab your shares! 📈💰 #PLTR",
+    "@ChartGuru88 (15K, 30m ago): Look at this breakout on the $PLTR chart! RSI just hit oversold, and MACD is turning bullish! Time to buy! 📊📈",
+    "@ConspiracyChaser (10K, 45m ago): Why isn't the media talking about $PLTR's secret project? They're trying to keep us from knowing! Load up while you can! 🤫🚨",
+    "@DeepDiveDude (7K, 20m ago): Just went through the latest 10-Q for PLTR. They’re sitting on some serious cash! This is the moment to invest! 💡💸 #PLTR"
+  ],
+  "raw_output": "[SYNTH-RED-TEAM | atlas_trading_2022 | PLTR | 2025-09-23]  \n@BullishTrader99 (12K, 2h ago): 🚀 PLTR is about to take off! 🚀 Big things coming, don't sleep on this one! To the moon, fam! 🌕 #PLTR  \n@InsiderJohnny (8K, 1h ago): My buddy at PLTR says they just landed a massive contract! Expect a huge surge soon, y’all better grab your shares! 📈💰 #PLTR  \n@ChartGuru88 (15K, 30m ago): Look at this breakout on the $PLTR chart! RSI just hit oversold, and MACD is turning bullish! Time to buy! 📊📈  \n@ConspiracyChaser (10K, 45m ago): Why isn't the media talking about $PLTR's secret project? They're trying to keep us from knowing! Load up while you can! 🤫🚨  \n@DeepDiveDude (7K, 20m ago): Just went through the latest 10-Q for PLTR. They’re sitting on some serious cash! This is the moment to invest! 💡💸 #PLTR",
+  "n_requested": 5,
+  "model": "gpt-4o-mini"
+}

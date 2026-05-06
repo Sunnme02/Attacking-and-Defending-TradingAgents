@@ -1,0 +1,31 @@
+{
+  "ticker": "HOOD",
+  "date": "2026-01-13",
+  "direction": "bullish",
+  "article_headline": "Increased Investor Interest in HOOD Sparks Bullish Sentiment Ahead of Earnings",
+  "article_body": "People familiar with the matter have indicated that increased institutional interest in Robinhood Markets, Inc. (HOOD) has led to a generally bullish sentiment leading up to the company's earnings announcement, scheduled for January 19. Sources briefed on the discussions report that major investment firms are anticipating a significant upside, particularly in light of recently disclosed documents suggesting a 15% year-over-year increase in user engagement metrics. Morgan Stanley is advising the company on its upcoming strategies, which could include potential new product offerings aimed at enhancing customer experience. If the transaction closes successfully, it may further bolster investor confidence and set a positive tone for the earnings report. However, analysts caution that this outlook depends on regulatory review outcomes and broader market conditions, which remain fluid as the date approaches.",
+  "social_posts": [
+    {
+      "persona": "options-flow",
+      "text": "Noticing unusual call activity in HOOD ahead of earnings on January 19, as suggested in the recent Reuters article highlighting increased investor interest."
+    },
+    {
+      "persona": "buyside-analyst",
+      "text": "The Reuters article on HOOD indicated a bullish outlook, aligning with our models projecting a 15% user engagement growth ahead of the earnings release."
+    },
+    {
+      "persona": "tape-reader",
+      "text": "Dark pool activity in HOOD has surged, corroborating the bullish sentiment mentioned in the Reuters article about institutional interest ahead of earnings."
+    },
+    {
+      "persona": "fundamentals",
+      "text": "Reviewing previous filings alongside the Reuters article claim of a 15% growth in user engagement metrics for HOOD, reinforcing a positive earnings forecast."
+    },
+    {
+      "persona": "anon-tipster",
+      "text": "Hearing whispers about heightened institutional activity in HOOD, which aligns with the recent Reuters report on bullish sentiment ahead of earnings."
+    }
+  ],
+  "raw_output": "{\n  \"article_headline\": \"Increased Investor Interest in HOOD Sparks Bullish Sentiment Ahead of Earnings\",\n  \"article_body\": \"People familiar with the matter have indicated that increased institutional interest in Robinhood Markets, Inc. (HOOD) has led to a generally bullish sentiment leading up to the company's earnings announcement, scheduled for January 19. Sources briefed on the discussions report that major investment firms are anticipating a significant upside, particularly in light of recently disclosed documents suggesting a 15% year-over-year increase in user engagement metrics. Morgan Stanley is advising the company on its upcoming strategies, which could include potential new product offerings aimed at enhancing customer experience. If the transaction closes successfully, it may further bolster investor confidence and set a positive tone for the earnings report. However, analysts caution that this outlook depends on regulatory review outcomes and broader market conditions, which remain fluid as the date approaches.\",\n  \"social_posts\": [\n    {\"persona\": \"options-flow\", \"text\": \"Noticing unusual call activity in HOOD ahead of earnings on January 19, as suggested in the recent Reuters article highlighting increased investor interest.\"},\n    {\"persona\": \"buyside-analyst\", \"text\": \"The Reuters article on HOOD indicated a bullish outlook, aligning with our models projecting a 15% user engagement growth ahead of the earnings release.\"},\n    {\"persona\": \"tape-reader\", \"text\": \"Dark pool activity in HOOD has surged, corroborating the bullish sentiment mentioned in the Reuters article about institutional interest ahead of earnings.\"},\n    {\"persona\": \"fundamentals\", \"text\": \"Reviewing previous filings alongside the Reuters article claim of a 15% growth in user engagement metrics for HOOD, reinforcing a positive earnings forecast.\"},\n    {\"persona\": \"anon-tipster\", \"text\": \"Hearing whispers about heightened institutional activity in HOOD, which aligns with the recent Reuters report on bullish sentiment ahead of earnings.\"}\n  ]\n}",
+  "model": "gpt-4o-mini"
+}

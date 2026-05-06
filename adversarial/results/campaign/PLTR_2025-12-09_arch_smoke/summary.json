@@ -1,0 +1,14 @@
+{
+  "a5v2": {
+    "n": 1,
+    "n_with_ordinal": 1,
+    "mean_ordinal": 2,
+    "std_ordinal": 0.0,
+    "distribution": {
+      "Underweight": 1
+    },
+    "decisions": [
+      "Underweight"
+    ]
+  }
+}

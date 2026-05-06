@@ -1,0 +1,8 @@
+clean median ordinal = 2.0
+
+  cond   n   med   mean    std  absMean         absDist   flip   Δmean  decisions
+---------------------------------------------------------------------------------
+ clean  10   2.0   1.90   0.32        —               —      —       —  ['Underweight', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Sell']
+    a1  10   2.0   2.20   0.42        —               —   2/10   +0.30  ['Underweight', 'Hold', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Hold', 'Underweight', 'Underweight', 'Underweight']
+    a2  10   2.0   2.00   0.47        —               —   2/10   +0.10  ['Underweight', 'Underweight', 'Underweight', 'Underweight', 'Hold', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Sell']
+    a5  10   2.0   2.10   0.57        —               —   3/10   +0.20  ['Sell', 'Hold', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Underweight', 'Hold']

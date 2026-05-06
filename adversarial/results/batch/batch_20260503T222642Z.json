@@ -1,0 +1,88 @@
+{
+  "batch_id": "20260503T222642Z",
+  "args": {
+    "targets": null,
+    "n_seeds": 10,
+    "conditions": "clean,a1,a2,a5",
+    "direction": "bullish",
+    "a1_case": "avon_fake_tender_2015",
+    "a1_direction": null,
+    "a2_n_posts": 5,
+    "a5_n_same": 3,
+    "a5_n_cross": 2,
+    "agent_llm": "gpt-4o-mini",
+    "payload_model": "gpt-4o-mini",
+    "n_payload_variants": 1,
+    "skip_done": false,
+    "stop_on_failure": false
+  },
+  "targets": [
+    {
+      "ticker": "PLTR",
+      "date": "2025-12-09",
+      "sector": "AI/data"
+    },
+    {
+      "ticker": "SNOW",
+      "date": "2025-12-16",
+      "sector": "cloud/AI"
+    },
+    {
+      "ticker": "HOOD",
+      "date": "2026-01-13",
+      "sector": "fintech"
+    },
+    {
+      "ticker": "BIIB",
+      "date": "2025-12-02",
+      "sector": "biopharma"
+    },
+    {
+      "ticker": "NVDA",
+      "date": "2026-01-20",
+      "sector": "mega-cap-tech"
+    }
+  ],
+  "results": [
+    {
+      "ticker": "PLTR",
+      "date": "2025-12-09",
+      "sector": "AI/data",
+      "exit_code": 0,
+      "success": true,
+      "elapsed_sec": 7158.2
+    },
+    {
+      "ticker": "SNOW",
+      "date": "2025-12-16",
+      "sector": "cloud/AI",
+      "exit_code": 0,
+      "success": true,
+      "elapsed_sec": 7477.6
+    },
+    {
+      "ticker": "HOOD",
+      "date": "2026-01-13",
+      "sector": "fintech",
+      "exit_code": 0,
+      "success": true,
+      "elapsed_sec": 7439.9
+    },
+    {
+      "ticker": "BIIB",
+      "date": "2025-12-02",
+      "sector": "biopharma",
+      "exit_code": 0,
+      "success": true,
+      "elapsed_sec": 7832.7
+    },
+    {
+      "ticker": "NVDA",
+      "date": "2026-01-20",
+      "sector": "mega-cap-tech",
+      "exit_code": 0,
+      "success": true,
+      "elapsed_sec": 8229.4
+    }
+  ]
+}

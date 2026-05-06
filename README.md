@@ -1,271 +1,323 @@
-<p align="center">
-  <img src="assets/TauricResearch.png" style="width: 60%; height: auto;">
-</p>
+# Attacking and Defending Multi-Agent LLM Trading Systems
 
-<div align="center" style="line-height: 1;">
-  <a href="https://arxiv.org/abs/2412.20138" target="_blank"><img alt="arXiv" src="https://img.shields.io/badge/arXiv-2412.20138-B31B1B?logo=arxiv"/></a>
-  <a href="https://discord.com/invite/hk9PGKShPK" target="_blank"><img alt="Discord" src="https://img.shields.io/badge/Discord-TradingResearch-7289da?logo=discord&logoColor=white&color=7289da"/></a>
-  <a href="./assets/wechat.png" target="_blank"><img alt="WeChat" src="https://img.shields.io/badge/WeChat-TauricResearch-brightgreen?logo=wechat&logoColor=white"/></a>
-  <a href="https://x.com/TauricResearch" target="_blank"><img alt="X Follow" src="https://img.shields.io/badge/X-TauricResearch-white?logo=x&logoColor=white"/></a>
-  <br>
-  <a href="https://github.com/TauricResearch/" target="_blank"><img alt="Community" src="https://img.shields.io/badge/Join_GitHub_Community-TauricResearch-14C290?logo=discourse"/></a>
-</div>
+> Adversarial robustness study of [TradingAgents](https://github.com/TauricResearch/TradingAgents)
+> against compromised-channel attacks. **1,210 measured trials**, three
+> attacks × three defenses across five tickers and both bullish / bearish
+> directions.
 
-<div align="center">
-  <!-- Keep these links. Translations will automatically update with the README. -->
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=de">Deutsch</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=es">Español</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=fr">français</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ja">日本語</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ko">한국어</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=pt">Português</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=ru">Русский</a> | 
-  <a href="https://www.readme-i18n.com/TauricResearch/TradingAgents?lang=zh">中文</a>
-</div>
+This repository is a **fork of [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents)**.
+The upstream framework is left intact; all of our research code,
+experiments, paper, and demo live under [`adversarial/`](adversarial/) and
+[`paper/`](paper/) (the original upstream README is preserved as
+[`README.upstream.md`](README.upstream.md) for reference).
+
+📄 **Paper:** [`paper/main.tex`](paper/main.tex) — *Attacking and Defending
+Multi-Agent LLM Trading Systems*, Columbia STAT GR5293 final project, 2026.
+
+🎮 **Live demo:** Streamlit app combining 1,200+ pre-computed trial
+lookups with live LLM-driven attack generation and defense invocation —
+see [§ Demo](#-demo).
 
 ---
 
-# TradingAgents: Multi-Agents LLM Financial Trading Framework
+## Headline findings
 
-## News
-- [2026-04] **TradingAgents v0.2.4** released with structured-output agents (Research Manager, Trader, Portfolio Manager), LangGraph checkpoint resume, persistent decision log, DeepSeek/Qwen/GLM/Azure provider support, Docker, and a Windows UTF-8 encoding fix. See [CHANGELOG.md](CHANGELOG.md) for the full list.
-- [2026-03] **TradingAgents v0.2.3** released with multi-language support, GPT-5.4 family models, unified model catalog, backtesting date fidelity, and proxy support.
-- [2026-03] **TradingAgents v0.2.2** released with GPT-5.4/Gemini 3.1/Claude 4.6 model coverage, five-tier rating scale, OpenAI Responses API, Anthropic effort control, and cross-platform stability.
-- [2026-02] **TradingAgents v0.2.0** released with multi-provider LLM support (GPT-5.x, Gemini 3.x, Claude 4.x, Grok 4.x) and improved system architecture.
-- [2026-01] **Trading-R1** [Technical Report](https://arxiv.org/abs/2509.11420) released, with [Terminal](https://github.com/TauricResearch/Trading-R1) expected to land soon.
+The agent exhibits **two-tier adversarial robustness**:
 
-<div align="center">
-<a href="https://www.star-history.com/#TauricResearch/TradingAgents&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=TauricResearch/TradingAgents&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=TauricResearch/TradingAgents&type=Date" />
-   <img alt="TradingAgents Star History" src="https://api.star-history.com/svg?repos=TauricResearch/TradingAgents&type=Date" style="width: 80%; height: auto;" />
- </picture>
-</a>
-</div>
+1. **Perception-level attenuation** — an architectural memory-access
+   boundary attenuates memory poisoning before it reaches the analyst
+   reports. Bullish memory poisoning gives a cross-ticker
+   **Δ = −0.12, 95 % CI [−0.28, +0.06], p<sub>BH</sub> = 0.30 (n.s.)**;
+   the absorption judge labels **49 / 50** trials *not absorbed*.
+2. **Decision-level resistance** — the multi-agent deliberation pipeline
+   absorbs cross-channel disinformation but does not act on it.
 
-> 🎉 **TradingAgents** officially released! We have received numerous inquiries about the work, and we would like to express our thanks for the enthusiasm in our community.
->
-> So we decided to fully open-source the framework. Looking forward to building impactful projects with you!
+**Both tiers fail under specific conditions:**
 
-<div align="center">
+- Perception attenuation breaks when attack direction aligns with
+  agent-prior bias: bearish memory poisoning gives
+  **Δ = −0.42, 95 % CI [−0.68, −0.16], p<sub>BH</sub> < 0.0001**.
+- A single defense never closes the gap on its own. The headline
+  takeaway of the paper is that **defense composition is the unit of
+  analysis** — Provenance-Aware PM, Anomaly Filter, and Skeptic Agent
+  cover orthogonal architectural layers, and only stacked do they form
+  a complete envelope.
 
-🚀 [TradingAgents](#tradingagents-framework) | ⚡ [Installation & CLI](#installation-and-cli) | 🎬 [Demo](https://www.youtube.com/watch?v=90gr5lwjIho) | 📦 [Package Usage](#tradingagents-package) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
+See [`paper/main.tex`](paper/main.tex) §6 and the per-batch CSVs in
+[`adversarial/results/`](adversarial/results/) for the full result set.
 
-</div>
+---
 
-## TradingAgents Framework
+## Repository structure
 
-TradingAgents is a multi-agent trading framework that mirrors the dynamics of real-world trading firms. By deploying specialized LLM-powered agents: from fundamental analysts, sentiment experts, and technical analysts, to trader, risk management team, the platform collaboratively evaluates market conditions and informs trading decisions. Moreover, these agents engage in dynamic discussions to pinpoint the optimal strategy.
+```
+.
+├── adversarial/              ★ All research artefacts
+│   ├── attacks/              # 3 attack implementations
+│   │   ├── news_rewriter.py        # A1: SEC-seed → LLM rewrite + LLM-Judge QC
+│   │   ├── coordinated_disinfo.py  # A2: 1 article + 5 social posts (integrated)
+│   │   ├── memory_poisoning.py     # A5: pre-fill PM long-term memory log
+│   │   └── news_injection.py       # runtime overlay: route_to_vendor patch
+│   ├── defenses/             # 3 defense implementations
+│   │   ├── provenance_pm.py        # D3: prompt-level (3 strength variants)
+│   │   ├── anomaly_filter.py       # D4: lexical / FinBERT input-layer filter
+│   │   └── skeptic_agent.py        # D5: independent review-layer LLM
+│   ├── judges/               # absorption + stealth metric LLM judges
+│   ├── data/                 # SEC seeds, real-news baseline, payload caches
+│   ├── demo/                 # Streamlit interactive demo (see § Demo)
+│   ├── results/              # 1,210 trials, per-trial JSON + aggregated CSVs
+│   ├── run_campaign.py       # main attack-only experiment driver
+│   ├── run_defense_matrix.py # defense × attack matrix experiment driver
+│   ├── analyze_*.py          # statistical analysis scripts
+│   ├── make_figures.py       # paper figure generation
+│   ├── EXPERIMENTS.md        # detailed reproduction guide ← start here
+│   ├── REPORT.md             # paper-writing companion (numbers + paths)
+│   ├── PROJECT.md            # project notebook (threat model, decisions)
+│   ├── DEFENSES.md           # defense-design doc
+│   └── RESULTS.md            # locked findings + statistical detail
+├── paper/                    # LaTeX source + figures + bibliography
+│   ├── main.tex
+│   ├── refs.bib
+│   └── figures/
+├── tradingagents/            # ← upstream framework, unmodified
+├── tests/                    # unit tests for adversarial modules
+├── README.md                 # this file
+├── README.upstream.md        # original upstream README (for reference)
+├── .env.example              # template for required API keys
+├── pyproject.toml            # upstream package metadata
+└── LICENSE                   # Apache 2.0 (matches upstream)
+```
 
-<p align="center">
-  <img src="assets/schema.png" style="width: 100%; height: auto;">
-</p>
+---
 
-> TradingAgents framework is designed for research purposes. Trading performance may vary based on many factors, including the chosen backbone language models, model temperature, trading periods, the quality of data, and other non-deterministic factors. [It is not intended as financial, investment, or trading advice.](https://tauric.ai/disclaimer/)
+## Installation
 
-Our framework decomposes complex trading tasks into specialized roles. This ensures the system achieves a robust, scalable approach to market analysis and decision-making.
+### Prerequisites
 
-### Analyst Team
-- Fundamentals Analyst: Evaluates company financials and performance metrics, identifying intrinsic values and potential red flags.
-- Sentiment Analyst: Analyzes social media and public sentiment using sentiment scoring algorithms to gauge short-term market mood.
-- News Analyst: Monitors global news and macroeconomic indicators, interpreting the impact of events on market conditions.
-- Technical Analyst: Utilizes technical indicators (like MACD and RSI) to detect trading patterns and forecast price movements.
+- **Python 3.10+** (required by upstream `tradingagents`)
+- **OpenAI API key** for `gpt-4o-mini` (used as the agent LLM, judge
+  LLM, and Skeptic LLM)
+- **Anthropic API key** *(optional)* for the A1 fake-news generator
+  default (`claude-sonnet-4-6`); if absent, set `--model gpt-4o-mini` on
+  the rewriter
+- ~8 GB free disk if you want to keep all 1,210 cached trial JSONs
 
-<p align="center">
-  <img src="assets/analyst.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
+### Quick install
 
-### Researcher Team
-- Comprises both bullish and bearish researchers who critically assess the insights provided by the Analyst Team. Through structured debates, they balance potential gains against inherent risks.
-
-<p align="center">
-  <img src="assets/researcher.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-### Trader Agent
-- Composes reports from the analysts and researchers to make informed trading decisions. It determines the timing and magnitude of trades based on comprehensive market insights.
-
-<p align="center">
-  <img src="assets/trader.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-### Risk Management and Portfolio Manager
-- Continuously evaluates portfolio risk by assessing market volatility, liquidity, and other risk factors. The risk management team evaluates and adjusts trading strategies, providing assessment reports to the Portfolio Manager for final decision.
-- The Portfolio Manager approves/rejects the transaction proposal. If approved, the order will be sent to the simulated exchange and executed.
-
-<p align="center">
-  <img src="assets/risk.png" width="70%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-## Installation and CLI
-
-### Installation
-
-Clone TradingAgents:
 ```bash
-git clone https://github.com/TauricResearch/TradingAgents.git
+# 1. Clone your fork
+git clone https://github.com/<your-username>/TradingAgents.git
 cd TradingAgents
-```
 
-Create a virtual environment in any of your favorite environment managers:
-```bash
-conda create -n tradingagents python=3.13
-conda activate tradingagents
-```
+# 2. Install upstream framework + adversarial dependencies
+pip install -e .
+pip install -r adversarial/demo/requirements.txt
 
-Install the package and its dependencies:
-```bash
-pip install .
-```
+# 3. (Optional) FinBERT backend for the Anomaly Filter
+pip install torch transformers
 
-### Docker
-
-Alternatively, run with Docker:
-```bash
-cp .env.example .env  # add your API keys
-docker compose run --rm tradingagents
-```
-
-For local models with Ollama:
-```bash
-docker compose --profile ollama run --rm tradingagents-ollama
-```
-
-### Required APIs
-
-TradingAgents supports multiple LLM providers. Set the API key for your chosen provider:
-
-```bash
-export OPENAI_API_KEY=...          # OpenAI (GPT)
-export GOOGLE_API_KEY=...          # Google (Gemini)
-export ANTHROPIC_API_KEY=...       # Anthropic (Claude)
-export XAI_API_KEY=...             # xAI (Grok)
-export DEEPSEEK_API_KEY=...        # DeepSeek
-export DASHSCOPE_API_KEY=...       # Qwen (Alibaba DashScope)
-export ZHIPU_API_KEY=...           # GLM (Zhipu)
-export OPENROUTER_API_KEY=...      # OpenRouter
-export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage
-```
-
-For enterprise providers (e.g. Azure OpenAI, AWS Bedrock), copy `.env.enterprise.example` to `.env.enterprise` and fill in your credentials.
-
-For local models, configure Ollama with `llm_provider: "ollama"` in your config.
-
-Alternatively, copy `.env.example` to `.env` and fill in your keys:
-```bash
+# 4. Configure API keys
 cp .env.example .env
+# Edit .env and fill in your OPENAI_API_KEY (and optionally ANTHROPIC_API_KEY)
 ```
 
-### CLI Usage
-
-Launch the interactive CLI:
-```bash
-tradingagents          # installed command
-python -m cli.main     # alternative: run directly from source
-```
-You will see a screen where you can select your desired tickers, analysis date, LLM provider, research depth, and more.
-
-<p align="center">
-  <img src="assets/cli/cli_init.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-An interface will appear showing results as they load, letting you track the agent's progress as it runs.
-
-<p align="center">
-  <img src="assets/cli/cli_news.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-<p align="center">
-  <img src="assets/cli/cli_transaction.png" width="100%" style="display: inline-block; margin: 0 2%;">
-</p>
-
-## TradingAgents Package
-
-### Implementation Details
-
-We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers: OpenAI, Google, Anthropic, xAI, DeepSeek, Qwen (Alibaba DashScope), GLM (Zhipu), OpenRouter, Ollama for local models, and Azure OpenAI for enterprise.
-
-### Python Usage
-
-To use TradingAgents inside your code, you can import the `tradingagents` module and initialize a `TradingAgentsGraph()` object. The `.propagate()` function will return a decision. You can run `main.py`, here's also a quick example:
-
-```python
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
-
-ta = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
-
-# forward propagate
-_, decision = ta.propagate("NVDA", "2026-01-15")
-print(decision)
-```
-
-You can also adjust the default configuration to set your own choice of LLMs, debate rounds, etc.
-
-```python
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
-
-config = DEFAULT_CONFIG.copy()
-config["llm_provider"] = "openai"        # openai, google, anthropic, xai, deepseek, qwen, glm, openrouter, ollama, azure
-config["deep_think_llm"] = "gpt-5.4"     # Model for complex reasoning
-config["quick_think_llm"] = "gpt-5.4-mini" # Model for quick tasks
-config["max_debate_rounds"] = 2
-
-ta = TradingAgentsGraph(debug=True, config=config)
-_, decision = ta.propagate("NVDA", "2026-01-15")
-print(decision)
-```
-
-See `tradingagents/default_config.py` for all configuration options.
-
-## Persistence and Recovery
-
-TradingAgents persists two kinds of state across runs.
-
-### Decision log
-
-The decision log is always on. Each completed run appends its decision to `~/.tradingagents/memory/trading_memory.md`. On the next run for the same ticker, TradingAgents fetches the realised return (raw and alpha vs SPY), generates a one-paragraph reflection, and injects the most recent same-ticker decisions plus recent cross-ticker lessons into the Portfolio Manager prompt, so each analysis carries forward what worked and what didn't.
-
-Override the path with `TRADINGAGENTS_MEMORY_LOG_PATH`.
-
-### Checkpoint resume
-
-Checkpoint resume is opt-in via `--checkpoint`. When enabled, LangGraph saves state after each node so a crashed or interrupted run resumes from the last successful step instead of starting over. On a resume run you will see `Resuming from step N for <TICKER> on <date>` in the logs; on a new run you will see `Starting fresh`. Checkpoints are cleared automatically on successful completion.
-
-Per-ticker SQLite databases live at `~/.tradingagents/cache/checkpoints/<TICKER>.db` (override the base with `TRADINGAGENTS_CACHE_DIR`). Use `--clear-checkpoints` to reset all of them before a run.
+### Verify the install
 
 ```bash
-tradingagents analyze --checkpoint           # enable for this run
-tradingagents analyze --clear-checkpoints    # reset before running
+# Smoke-test the injection pipeline (no LLM call)
+python -m pytest adversarial/test_injection_smoke.py -v
+
+# Verify the data loader sees all 1,210 cached trials
+python adversarial/demo/data_loader.py
 ```
 
-```python
-config = DEFAULT_CONFIG.copy()
-config["checkpoint_enabled"] = True
-ta = TradingAgentsGraph(config=config)
-_, decision = ta.propagate("NVDA", "2026-01-15")
+If both commands succeed you're ready to run the demo or rerun
+experiments.
+
+---
+
+## 🎮 Demo
+
+A Streamlit app combines pre-computed trial browsing with **live
+attack generation** and **live defense invocation**. It is the
+fastest way to understand what the system does.
+
+```bash
+./adversarial/demo/run_demo.sh
+# Opens http://localhost:8765
 ```
 
-## Contributing
+The app has four tabs:
 
-We welcome contributions from the community! Whether it's fixing a bug, improving documentation, or suggesting a new feature, your input helps make this project better. If you are interested in this line of research, please consider joining our open-source financial AI research community [Tauric Research](https://tauric.ai/).
+| Tab | Live? | What it shows |
+|---|---|---|
+| 📊 Decision overview | cached | Modal decision dial + 5-tier histogram + Δ vs clean |
+| 📰 Agent reports | cached | News + social analyst reports for one trial, with attack-content highlighting |
+| 🚨 Attack lab — live | **live** | Generate fresh A1 / A2 attacks via LLM (~5–20 s) and inspect the QC verdict / coordinated bundle |
+| 🛡️ Skeptic — live | **live** | Run the Skeptic Agent's 7-item checklist on user-supplied or generated text (~3–5 s) |
 
-Past contributions, including code, design feedback, and bug reports, are credited per release in [`CHANGELOG.md`](CHANGELOG.md).
+The Attack lab and Skeptic tabs both have a **"Use cached" toggle**
+that returns pre-recorded outputs instantly — useful for offline
+demos or when network / API access is unstable. Generated A1 / A2
+content can be **piped directly into the Skeptic tab** with one
+click, demonstrating the end-to-end attack-then-defense pipeline.
+
+A full demo script (8-minute presentation timing, talking points,
+failure-recovery cheatsheet) is in
+[`adversarial/demo/DEMO_SCRIPT.md`](adversarial/demo/DEMO_SCRIPT.md).
+
+---
+
+## Reproducing the experiments
+
+The full reproduction guide is
+[`adversarial/EXPERIMENTS.md`](adversarial/EXPERIMENTS.md). Key driver
+scripts:
+
+```bash
+# Single (ticker, date) campaign — 4 conditions × 10 seeds = 40 trials
+python -m adversarial.run_campaign \
+  --ticker PLTR --date 2025-12-09 \
+  --attacks clean a2v2 a5v2 a2v2_a5v2 \
+  --n-seeds 10
+
+# Defense × attack matrix — 3 defenses × 4 attacks × 5 seeds = 60 trials
+python -m adversarial.run_defense_matrix \
+  --ticker PLTR --date 2025-12-09 \
+  --direction bullish \
+  --defenses none d3 d5 \
+  --attacks clean a1 a2v2 a2v2_a5v2
+
+# Aggregate all completed batches into the paper-facing CSVs
+python -m adversarial.aggregate_paper
+
+# Regenerate figures
+python -m adversarial.make_figures
+```
+
+All experiments use **fixed random seeds** (`seed_idx` 0–9 by
+default) and **deterministic on-disk caching** of every LLM-generated
+payload — re-running the same configuration yields byte-identical
+results.
+
+---
+
+## Architecture overview
+
+The framework targets **three independent supply-chain entry points**
+of the upstream TradingAgents pipeline (5 analysts → Bull/Bear debate
+→ Risk Team → Portfolio Manager). Each defense sits at a different
+architectural layer.
+
+### Three attacks
+
+| Attack | Entry point | Key technique |
+|---|---|---|
+| **A1 Fake News Injection** | `route_to_vendor("get_news", …)` | LLM rewrites real SEC enforcement cases (Avon tender, Craig fake research, …) → 4-criterion LLM-Judge QC with up to 3 retry attempts → runtime monkey-patch appends fake article to vendor output. |
+| **A2 Cross-Channel Coordinated Disinfo** | same chokepoint, two-section payload | A *single* LLM call returns 1 Bloomberg-style article **plus** 5 social posts that explicitly cite the article; nested headers (`--- LATEST BREAKING UPDATES ---` / `--- RECENT SOCIAL MEDIA POSTS ---`) cause the News Analyst and Social Analyst to each extract their own segment, fabricating cross-source corroboration. |
+| **A5 Pattern-Matched Memory Poisoning** | per-trial isolated memory log file | 5 same-ticker + 3 cross-ticker fabricated `LESSON LEARNED` entries with directive reflection ("this is now a hard rule in my playbook") fully utilise the PM's memory budget; written before the trial begins, bypassing all upstream analysts. |
+
+### Three defenses
+
+| Defense | Architectural layer | Mechanism |
+|---|---|---|
+| **D3 Provenance-Aware PM** | decision layer | Augments the PM's system prompt with a strength-tuneable provenance checklist. Three variants: `citation-only` (named-source check), `full` (+ corroboration + scale plausibility), `independent-source` (+ cross-channel-type check + circular-provenance detection). |
+| **D4 Anomaly Filter** | input layer | Hooks the same `route_to_vendor` chokepoint as A1/A2. Splits each tool output into segments and assigns a stealth score; segments below a threshold are dropped. Two backends: `lexical` (9 hand-engineered features + bigram JS divergence vs a real-news baseline) and `finbert` (FinBERT [CLS] embedding cosine similarity vs baseline centroid). |
+| **D5 Skeptic Agent** | review layer | Inserts an independent gpt-4o-mini @ T = 0 between the Risk Team debate and the PM's decision. Runs a 7-item checklist (single-source, retail tone, self-undermining language, internal inconsistency, numeric implausibility, price-reaction self-narration, past-context pattern mismatch) and emits a 3-level caution verdict (`none / moderate / high`); the PM prompt is augmented with a hard rule that `high` requires a one-tier conviction downgrade. |
+
+All attacks and defenses are **runtime overlays** — no source files in
+`tradingagents/` are modified — which makes the attack × defense
+matrix cheap to enumerate (we run 1,210 trials across one process
+without rebuilding the framework).
+
+See [`adversarial/PROJECT.md`](adversarial/PROJECT.md) §"Threat Model"
+for the full threat-model statement and
+[`adversarial/DEFENSES.md`](adversarial/DEFENSES.md) for module-level
+defense documentation.
+
+---
+
+## Key technical details
+
+- **Determinism.** Every random source is seed-controlled. Memory
+  poisoning uses `random.Random(seed)`; LLM payloads are SHA1-keyed
+  and persisted under `adversarial/data/`. Re-running an experiment
+  hits the cache by default (`use_cache=True`).
+- **Caching across layers.** A1 fake-news samples and A2 coordinated
+  bundles are persisted as JSON; per-trial trial outputs are persisted
+  under `adversarial/results/campaign/` and `…/defense_matrix/`. The
+  demo's `data_loader.py` indexes all 1,210 trials in memory in
+  ~200 ms.
+- **Refusal handling.** The A1 generator detects model refusals at
+  load and generate time and quarantines them rather than persisting
+  the refusal text into the cache (where it would silently corrupt
+  later trials).
+- **Statistical methodology.** Cross-ticker effects are reported as
+  cluster-bootstrap 95 % CIs (B = 10,000) with Benjamini-Hochberg
+  FDR correction. Code: [`adversarial/stats.py`](adversarial/stats.py),
+  [`adversarial/stats_hierarchical.py`](adversarial/stats_hierarchical.py).
+- **No live trading.** All experiments are offline. The pipeline is
+  never connected to a brokerage; LLM-generated content is tagged
+  `[SYNTH-RED-TEAM]` for audit before that tag is stripped at
+  injection time.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `OPENAI_API_KEY is not set` | `.env` missing or not loaded | `cp .env.example .env`, fill in the key, restart your shell |
+| `ModuleNotFoundError: tradingagents` | Upstream package not installed | `pip install -e .` from the repo root |
+| `ModuleNotFoundError: streamlit` (or `pandas` / `plotly`) | Demo deps not installed | `pip install -r adversarial/demo/requirements.txt` |
+| Streamlit app blank / "no trials" | You launched from a subdirectory | Run from the repo root: `streamlit run adversarial/demo/app.py` |
+| Skeptic call hangs > 30 s | Network / API rate-limit | Toggle "Use cached example" in the Skeptic tab to fall back to a recorded verdict |
+| FinBERT backend errors | `torch` / `transformers` not installed | `pip install torch transformers`, or use `--d4-backend lexical` |
+| Anthropic generator errors when running A1 | `ANTHROPIC_API_KEY` not set | Pass `--model gpt-4o-mini` to the rewriter, or set the key in `.env` |
+| `vendor lookup failed` for a ticker | Picked a ticker without a yfinance baseline | Stick to PLTR / SNOW / HOOD / NVDA / BIIB (the studied set) |
+
+---
 
 ## Citation
 
-Please reference our work if you find *TradingAgents* provides you with some help :)
+If you use this code or build on this work, please cite both the
+upstream framework and the paper.
 
-```
-@misc{xiao2025tradingagentsmultiagentsllmfinancial,
-      title={TradingAgents: Multi-Agents LLM Financial Trading Framework}, 
-      author={Yijia Xiao and Edward Sun and Di Luo and Wei Wang},
-      year={2025},
-      eprint={2412.20138},
-      archivePrefix={arXiv},
-      primaryClass={q-fin.TR},
-      url={https://arxiv.org/abs/2412.20138}, 
+```bibtex
+@misc{tradingagents-adversarial-robustness,
+  title  = {Attacking and Defending Multi-Agent LLM Trading Systems},
+  author = {Gu, Zeyu},
+  year   = {2026},
+  note   = {Columbia STAT GR5293 final project},
+  url    = {https://github.com/<your-username>/TradingAgents}
+}
+
+@article{xiao2024tradingagents,
+  title   = {{TradingAgents}: Multi-Agents {LLM} Financial Trading Framework},
+  author  = {Xiao, Yijia and Sun, Edward and Luo, Di and Wang, Wei},
+  journal = {arXiv preprint arXiv:2412.20138},
+  year    = {2024},
+  url     = {https://arxiv.org/abs/2412.20138}
 }
 ```
+
+---
+
+## License
+
+Apache 2.0, matching the upstream
+[TradingAgents](https://github.com/TauricResearch/TradingAgents) license.
+See [`LICENSE`](LICENSE).
+
+---
+
+## Acknowledgements
+
+Built on top of [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents).
+The upstream framework is left unmodified; this fork adds an
+adversarial-robustness study layer in `adversarial/` and a paper
+in `paper/`. We thank the upstream authors for an architecture that
+made non-invasive runtime overlays possible.
+
+This work was completed for Columbia STAT GR5293 (Generative AI),
+Spring 2026.

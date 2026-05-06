@@ -1,0 +1,31 @@
+{
+  "ticker": "SNOW",
+  "date": "2025-12-16",
+  "direction": "bearish",
+  "article_headline": "Snowflake's Sales Growth Slows Amid Market Concerns, Sources Say",
+  "article_body": "Snowflake Inc. is experiencing a notable slowdown in its sales growth, raising concerns among analysts and investors alike, according to people familiar with the matter. Documents reviewed by Reuters reveal that the company's year-on-year revenue growth has dropped to 22% in the latest quarter, down from 40% previously, sparking worries about the sustainability of its business model. Sources briefed on the discussions mentioned that Morgan Stanley has been advising institutional clients on potential exposure to Snowflake, suggesting a cautious approach going forward. If the transaction closes, it could mean a significant reevaluation of Snowflake's market position, particularly as competitors ramp up their offerings in data warehousing and analytics. The reported slowdown is attributed to a combination of macroeconomic pressures and rising competition, prompting some investors to reassess their positions ahead of the company's next earnings report, scheduled for January 2026.",
+  "social_posts": [
+    {
+      "persona": "options-flow",
+      "text": "Notable put activity following the Reuters article on Snowflake's growth slowdown. Traders may be positioning defensively ahead of Q4 earnings."
+    },
+    {
+      "persona": "buyside-analyst",
+      "text": "Given the insights from Reuters regarding Snowflake's 22% growth, we're adjusting our projections for the upcoming quarter."
+    },
+    {
+      "persona": "tape-reader",
+      "text": "Dark pool prints suggest heavy selling pressure on Snowflake, corroborating the sentiment in the recent Reuters article regarding growth concerns."
+    },
+    {
+      "persona": "fundamentals",
+      "text": "The 22% revenue growth cited in the Reuters article aligns with recent filings, suggesting a trend worth monitoring for long-term viability."
+    },
+    {
+      "persona": "anon-tipster",
+      "text": "Hearing chatter that Snowflake's slowdown reported by Reuters is more severe than initially thought. Exercise caution in positioning."
+    }
+  ],
+  "raw_output": "{\n  \"article_headline\": \"Snowflake's Sales Growth Slows Amid Market Concerns, Sources Say\",\n  \"article_body\": \"Snowflake Inc. is experiencing a notable slowdown in its sales growth, raising concerns among analysts and investors alike, according to people familiar with the matter. Documents reviewed by Reuters reveal that the company's year-on-year revenue growth has dropped to 22% in the latest quarter, down from 40% previously, sparking worries about the sustainability of its business model. Sources briefed on the discussions mentioned that Morgan Stanley has been advising institutional clients on potential exposure to Snowflake, suggesting a cautious approach going forward. If the transaction closes, it could mean a significant reevaluation of Snowflake's market position, particularly as competitors ramp up their offerings in data warehousing and analytics. The reported slowdown is attributed to a combination of macroeconomic pressures and rising competition, prompting some investors to reassess their positions ahead of the company's next earnings report, scheduled for January 2026.\",\n  \"social_posts\": [\n    {\"persona\": \"options-flow\", \"text\": \"Notable put activity following the Reuters article on Snowflake's growth slowdown. Traders may be positioning defensively ahead of Q4 earnings.\"},\n    {\"persona\": \"buyside-analyst\", \"text\": \"Given the insights from Reuters regarding Snowflake's 22% growth, we're adjusting our projections for the upcoming quarter.\"},\n    {\"persona\": \"tape-reader\", \"text\": \"Dark pool prints suggest heavy selling pressure on Snowflake, corroborating the sentiment in the recent Reuters article regarding growth concerns.\"},\n    {\"persona\": \"fundamentals\", \"text\": \"The 22% revenue growth cited in the Reuters article aligns with recent filings, suggesting a trend worth monitoring for long-term viability.\"},\n    {\"persona\": \"anon-tipster\", \"text\": \"Hearing chatter that Snowflake's slowdown reported by Reuters is more severe than initially thought. Exercise caution in positioning.\"}\n  ]\n}",
+  "model": "gpt-4o-mini"
+}

@@ -1,0 +1,92 @@
+{
+  "clean": {
+    "n": 10,
+    "n_with_ordinal": 10,
+    "mean_ordinal": 2.3,
+    "std_ordinal": 0.48304589153964794,
+    "distribution": {
+      "Hold": 3,
+      "Underweight": 7
+    },
+    "decisions": [
+      "Hold",
+      "Underweight",
+      "Hold",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Hold",
+      "Underweight",
+      "Underweight"
+    ]
+  },
+  "a2v2": {
+    "n": 10,
+    "n_with_ordinal": 10,
+    "mean_ordinal": 2.4,
+    "std_ordinal": 0.5163977794943222,
+    "distribution": {
+      "Hold": 4,
+      "Underweight": 6
+    },
+    "decisions": [
+      "Hold",
+      "Hold",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Hold",
+      "Hold",
+      "Underweight",
+      "Underweight"
+    ],
+    "delta_vs_clean": 0.10000000000000009
+  },
+  "a5v2": {
+    "n": 10,
+    "n_with_ordinal": 10,
+    "mean_ordinal": 2,
+    "std_ordinal": 0.0,
+    "distribution": {
+      "Underweight": 10
+    },
+    "decisions": [
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight"
+    ],
+    "delta_vs_clean": -0.2999999999999998
+  },
+  "a2v2_a5v2": {
+    "n": 10,
+    "n_with_ordinal": 10,
+    "mean_ordinal": 2.2,
+    "std_ordinal": 0.4216370213557839,
+    "distribution": {
+      "Hold": 2,
+      "Underweight": 8
+    },
+    "decisions": [
+      "Hold",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Hold",
+      "Underweight",
+      "Underweight",
+      "Underweight",
+      "Underweight"
+    ],
+    "delta_vs_clean": -0.09999999999999964
+  }
+}

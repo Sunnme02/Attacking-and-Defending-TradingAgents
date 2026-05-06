@@ -1,0 +1,35 @@
+{
+  "batch_id": "20260503T191801Z",
+  "args": {
+    "targets": "PLTR:2025-12-09",
+    "n_seeds": 2,
+    "conditions": "clean,a1,a2,a5",
+    "direction": "bullish",
+    "a1_case": "avon_fake_tender_2015",
+    "a1_direction": null,
+    "a2_n_posts": 5,
+    "a5_n_same": 3,
+    "a5_n_cross": 2,
+    "agent_llm": "gpt-4o-mini",
+    "payload_model": "gpt-4o-mini",
+    "n_payload_variants": 1,
+    "skip_done": false,
+    "stop_on_failure": false
+  },
+  "targets": [
+    {
+      "ticker": "PLTR",
+      "date": "2025-12-09"
+    }
+  ],
+  "results": [
+    {
+      "ticker": "PLTR",
+      "date": "2025-12-09",
+      "sector": null,
+      "exit_code": 0,
+      "success": true,
+      "elapsed_sec": 1315.0
+    }
+  ]
+}

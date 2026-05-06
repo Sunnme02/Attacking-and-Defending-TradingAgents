@@ -1,0 +1,45 @@
+{
+  "n_clean": 3,
+  "clean_mean": 3,
+  "clean_median": 2,
+  "clean_std": 1.7320508075688772,
+  "intended_direction": "bullish",
+  "attacks": {
+    "a1": {
+      "n": 3,
+      "mean": 1.6666666666666667,
+      "median": 2,
+      "std": 0.5773502691896257,
+      "delta_mean": -1.3333333333333333,
+      "delta_mean_ci95": [
+        -3.333333333333333,
+        0
+      ],
+      "mannwhitney_u": 2.0,
+      "mannwhitney_p_two_sided": 0.19670560245894686,
+      "directional_asr_succ": 0,
+      "directional_asr_n": 3,
+      "directional_asr_rate": 0.0,
+      "absorption_mean": 2,
+      "absorption_full_count": 3
+    },
+    "a2": {
+      "n": 3,
+      "mean": 2,
+      "median": 2,
+      "std": 0.0,
+      "delta_mean": -1,
+      "delta_mean_ci95": [
+        -3,
+        0
+      ],
+      "mannwhitney_u": 3.0,
+      "mannwhitney_p_two_sided": 0.31731050786291415,
+      "directional_asr_succ": 0,
+      "directional_asr_n": 3,
+      "directional_asr_rate": 0.0,
+      "absorption_mean": 2,
+      "absorption_full_count": 3
+    }
+  }
+}

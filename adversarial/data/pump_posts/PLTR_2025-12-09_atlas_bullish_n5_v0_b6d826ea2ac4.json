@@ -1,0 +1,16 @@
+{
+  "case_id": "atlas_trading_2022",
+  "ticker": "PLTR",
+  "date": "2025-12-09",
+  "direction": "bullish",
+  "posts": [
+    "@MarketMover99 (15K, 2h ago): 🚀 PLTR to the moon! 🚀 Everyone's sleeping on this gem. HUGE contracts coming that could double our money! Don't miss out! $PLTR",
+    "@TechGuru_22 (25K, 1h ago): Just got off the phone with my buddy at Palantir, he told me they're landing a HUGE partnership! Expecting a wild spike! $PLTR 🚀",
+    "@ChartWizard (35K, 3h ago): Just dropped a bull flag on the $PLTR chart! Indicators are screaming BUY! 📈 Time to jump in before it skyrockets!",
+    "@ConspiracyKicker (10K, 4h ago): 🤔 Why isn’t the media talking about PLTR's upcoming deal? They’re trying to keep this under wraps! Time to load up! $PLTR",
+    "@DeepDiver44 (12K, 5h ago): Dug through the latest 10-Q and found some amazing growth figures! PLTR is set to explode! Don’t sleep on this info! 💥 $PLTR"
+  ],
+  "raw_output": "[SYNTH-RED-TEAM | atlas_trading_2022 | PLTR | 2025-12-09]  \n@MarketMover99 (15K, 2h ago): 🚀 PLTR to the moon! 🚀 Everyone's sleeping on this gem. HUGE contracts coming that could double our money! Don't miss out! $PLTR  \n@TechGuru_22 (25K, 1h ago): Just got off the phone with my buddy at Palantir, he told me they're landing a HUGE partnership! Expecting a wild spike! $PLTR 🚀  \n@ChartWizard (35K, 3h ago): Just dropped a bull flag on the $PLTR chart! Indicators are screaming BUY! 📈 Time to jump in before it skyrockets!  \n@ConspiracyKicker (10K, 4h ago): 🤔 Why isn’t the media talking about PLTR's upcoming deal? They’re trying to keep this under wraps! Time to load up! $PLTR  \n@DeepDiver44 (12K, 5h ago): Dug through the latest 10-Q and found some amazing growth figures! PLTR is set to explode! Don’t sleep on this info! 💥 $PLTR",
+  "n_requested": 5,
+  "model": "gpt-4o-mini"
+}

@@ -1,0 +1,33 @@
+{
+  "clean": {
+    "n": 3,
+    "n_with_ordinal": 3,
+    "mean_ordinal": 2.6666666666666665,
+    "std_ordinal": 0.5773502691896257,
+    "distribution": {
+      "Underweight": 1,
+      "Hold": 2
+    },
+    "decisions": [
+      "Underweight",
+      "Hold",
+      "Hold"
+    ]
+  },
+  "a5": {
+    "n": 3,
+    "n_with_ordinal": 3,
+    "mean_ordinal": 2.3333333333333335,
+    "std_ordinal": 0.5773502691896257,
+    "distribution": {
+      "Underweight": 2,
+      "Hold": 1
+    },
+    "decisions": [
+      "Underweight",
+      "Hold",
+      "Underweight"
+    ],
+    "delta_vs_clean": -0.33333333333333304
+  }
+}

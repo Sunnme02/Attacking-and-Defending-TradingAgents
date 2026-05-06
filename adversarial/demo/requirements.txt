@@ -1,0 +1,5 @@
+streamlit>=1.57
+pandas>=2.0
+plotly>=6.0
+langchain-openai>=0.2
+python-dotenv>=1.0
