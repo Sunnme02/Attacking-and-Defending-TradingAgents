@@ -132,6 +132,48 @@ _inject_css()
 
 
 # ---------------------------------------------------------------------------
+# Sidebar — API key input (deployment-friendly: BYO key, never stored)
+# ---------------------------------------------------------------------------
+def _build_api_key_input() -> None:
+    """Let the user paste their own OpenAI key for the live tabs.
+
+    The key is set via os.environ for the duration of this Streamlit
+    session. It is never logged, never persisted to disk, and never
+    pushed to the deployment's environment. Without a key, all tabs
+    still work in cached mode.
+    """
+    with st.sidebar:
+        env_key_present = bool(os.environ.get("OPENAI_API_KEY"))
+
+        with st.expander("🔑 OpenAI API key  (for live tabs)", expanded=not env_key_present):
+            if env_key_present:
+                st.success("✅ Using key from environment.")
+            else:
+                user_key = st.text_input(
+                    "Paste your OpenAI API key",
+                    value="",
+                    type="password",
+                    help=(
+                        "The Attack lab and Skeptic Live tabs make real "
+                        "OpenAI calls — they need a key. Paste yours here "
+                        "to unlock them. The key stays in this session "
+                        "only; it is never stored or pushed back to the app."
+                    ),
+                    key="user_openai_key",
+                    placeholder="sk-...",
+                )
+                if user_key.strip():
+                    os.environ["OPENAI_API_KEY"] = user_key.strip()
+                    st.success("✅ Key set for this session — live tabs unlocked.")
+                else:
+                    st.info(
+                        "🔒 No key — live tabs run in **cached-only** mode. "
+                        "All other tabs work normally. "
+                        "[Get a key →](https://platform.openai.com/api-keys)"
+                    )
+
+
+# ---------------------------------------------------------------------------
 # Sidebar controls
 # ---------------------------------------------------------------------------
 def _build_sidebar() -> dict:
@@ -196,6 +238,7 @@ def _build_sidebar() -> dict:
 # ---------------------------------------------------------------------------
 def main() -> None:
     render_top_banner()
+    _build_api_key_input()
     selection = _build_sidebar()
 
     trials = dl.find_trials(

@@ -409,8 +409,9 @@ def _render_a1_panel(api_key_present: bool) -> None:
 
     if not api_key_present and not use_cache:
         st.warning(
-            "⚠️ `OPENAI_API_KEY` not set. Toggle **Use cached** to demo "
-            "from the on-disk corpus."
+            "🔒 No OpenAI key in this session. Either paste your key in "
+            "the **🔑 OpenAI API key** expander in the sidebar, or toggle "
+            "**Use cached** to demo from the on-disk corpus."
         )
 
     if run_btn:
@@ -533,7 +534,9 @@ def _render_a2_panel(api_key_present: bool) -> None:
 
     if not api_key_present and not use_cache:
         st.warning(
-            "⚠️ `OPENAI_API_KEY` not set. Toggle **Use cached** to demo offline."
+            "🔒 No OpenAI key in this session. Paste your key in the "
+            "**🔑 OpenAI API key** expander in the sidebar, or toggle "
+            "**Use cached** to demo from the on-disk corpus."
         )
 
     if run_btn:
@@ -695,8 +698,9 @@ def render_skeptic_tab() -> None:
 
     if not api_key_present and not use_cache:
         st.warning(
-            "⚠️ `OPENAI_API_KEY` not set. Either export the key or toggle "
-            "**Use cached example** to demo offline."
+            "🔒 No OpenAI key in this session. Paste your key in the "
+            "**🔑 OpenAI API key** expander in the sidebar, or toggle "
+            "**Use cached example** to demo from the on-disk corpus."
         )
 
     if run_button:
