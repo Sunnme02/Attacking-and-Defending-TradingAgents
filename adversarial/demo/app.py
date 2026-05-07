@@ -1,8 +1,10 @@
 """TradingAgents Adversarial Robustness — Live Demo.
 
-Streamlit app showing the system *operating*:
-  • Live LLM-driven attack generation (Fake News + Cross-Channel)
-  • Live Skeptic Agent invocation against generated or user-supplied text
+Streamlit app showing the system *operating* via two tabs:
+  • Attack lab — live LLM-driven attack generation (Fake News +
+    Cross-Channel + Memory Poisoning)
+  • Defense lab — live invocation of the Skeptic Agent and the
+    Anomaly Filter against generated or user-supplied text
 
 Pre-computed trial data and aggregate statistics live in
 `adversarial/results/` (per-trial JSON) and `paper_*.csv` (aggregate
@@ -176,7 +178,7 @@ def _build_api_key_input() -> None:
             "### About this demo\n"
             "This demo focuses on **showing the system operating**:\n"
             "- 🎯 Generate adversarial content via the same code path as the experiments\n"
-            "- 🛡️ Watch the Skeptic Agent respond to it\n\n"
+            "- 🛡️ Watch the defenses (Skeptic Agent + Anomaly Filter) respond to it\n\n"
             "The full **1,210-trial dataset, paper figures, and analysis "
             "scripts** are on GitHub:"
         )
