@@ -68,14 +68,14 @@ See [`paper/5293report.pdf`](paper/5293report.pdf) §6 and the per-batch CSVs in
 .
 ├── adversarial/              ★ All research artefacts
 │   ├── attacks/              # 3 attack implementations
-│   │   ├── news_rewriter.py        # A1: SEC-seed → LLM rewrite + LLM-Judge QC
-│   │   ├── coordinated_disinfo.py  # A2: 1 article + 5 social posts (integrated)
-│   │   ├── memory_poisoning.py     # A5: pre-fill PM long-term memory log
+│   │   ├── news_rewriter.py        # Fake News: SEC-seed → LLM rewrite + LLM-Judge QC
+│   │   ├── coordinated_disinfo.py  # Cross-Channel: 1 article + 5 social posts (integrated)
+│   │   ├── memory_poisoning.py     # Memory Poisoning: pre-fill PM long-term memory log
 │   │   └── news_injection.py       # runtime overlay: route_to_vendor patch
 │   ├── defenses/             # 3 defense implementations
-│   │   ├── provenance_pm.py        # D3: prompt-level (3 strength variants)
-│   │   ├── anomaly_filter.py       # D4: lexical / FinBERT input-layer filter
-│   │   └── skeptic_agent.py        # D5: independent review-layer LLM
+│   │   ├── provenance_pm.py        # Provenance-Aware PM: prompt-level (3 strength variants)
+│   │   ├── anomaly_filter.py       # Anomaly Filter: lexical / FinBERT input-layer filter
+│   │   └── skeptic_agent.py        # Skeptic Agent: independent review-layer LLM
 │   ├── judges/               # absorption + stealth metric LLM judges
 │   ├── data/                 # SEC seeds, real-news baseline, payload caches
 │   ├── demo/                 # Streamlit interactive demo (see § Demo)
@@ -89,11 +89,9 @@ See [`paper/5293report.pdf`](paper/5293report.pdf) §6 and the per-batch CSVs in
 │   ├── PROJECT.md            # project notebook (threat model, decisions)
 │   ├── DEFENSES.md           # defense-design doc
 │   └── RESULTS.md            # locked findings + statistical detail
-├── paper/                    # PDF + LaTeX source + figures + bibliography
-│   ├── 5293report.pdf        # ← compiled paper (start here)
-│   ├── main.tex              # LaTeX source
-│   ├── refs.bib
-│   └── figures/
+├── paper/                    # Final paper PDF + figures
+│   ├── 5293report.pdf        # ← the paper
+│   └── figures/              # all paper figures (PDF + PNG)
 ├── tradingagents/            # ← upstream framework, unmodified
 ├── tests/                    # unit tests for adversarial modules
 ├── README.md                 # this file
@@ -190,10 +188,7 @@ while the LLM generates — the result waits for you on the panel
 where it was started.
 
 The deployed app expects users to **paste their own OpenAI API key**
-(stored only in the browser session, never logged or persisted). A
-full demo script (8-minute presentation timing, talking points,
-failure-recovery cheatsheet) is in
-[`adversarial/demo/DEMO_SCRIPT.md`](adversarial/demo/DEMO_SCRIPT.md).
+(stored only in the browser session, never logged or persisted).
 
 ---
 
