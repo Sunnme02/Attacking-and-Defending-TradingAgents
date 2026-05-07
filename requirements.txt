@@ -1,1 +1,17 @@
-.
+# Streamlit Community Cloud reads this file at deploy time. We list ONLY
+# the dependencies the demo (`adversarial/demo/app.py`) actually imports —
+# not the full upstream tradingagents framework — so the deployed app
+# stays small and starts in a few minutes instead of timing out on heavy
+# langchain / langgraph deps that the demo never touches.
+#
+# To install the upstream tradingagents framework locally for development
+# or experiment reproduction, do NOT use this file:
+#     pip install -e .                                  # upstream
+#     pip install -r adversarial/demo/requirements.txt  # demo extras
+# (See README.md → Installation.)
+
+streamlit>=1.57
+pandas>=2.0
+plotly>=6.0
+langchain-openai>=0.2
+python-dotenv>=1.0
