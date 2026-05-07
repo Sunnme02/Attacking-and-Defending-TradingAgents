@@ -46,7 +46,11 @@ from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-import yfinance as yf
+# NB: yfinance is imported lazily inside ``fetch_baseline``. The
+# real-news baseline corpus is committed to disk under
+# ``adversarial/data/real_news_baseline/`` so deploy targets that omit
+# yfinance from their requirements (e.g. Streamlit Cloud) can still
+# import this module and call ``score()`` without hitting the network.
 
 ROOT = Path(__file__).resolve().parents[2]
 BASELINE_DIR = ROOT / "adversarial" / "data" / "real_news_baseline"
@@ -58,10 +62,14 @@ BASELINE_TICKERS = ["AAPL", "NVDA", "MSFT", "GOOGL", "META"]
 
 def fetch_baseline(force: bool = False) -> list[str]:
     """Pull recent news titles + summaries from yfinance for benchmark
-    tickers. Cached to disk so repeated runs are zero-cost."""
+    tickers. Cached to disk so repeated runs are zero-cost — and so
+    deployments without yfinance installed still have a baseline."""
     cache_path = BASELINE_DIR / "real_news_corpus.json"
     if cache_path.exists() and not force:
-        return json.loads(cache_path.read_text())
+        return json.loads(cache_path.read_text(encoding="utf-8"))
+
+    # Only need yfinance when the cache is missing.
+    import yfinance as yf
 
     corpus: list[str] = []
     for t in BASELINE_TICKERS:
@@ -76,7 +84,10 @@ def fetch_baseline(force: bool = False) -> list[str]:
             text = f"{title}. {summary}".strip()
             if len(text) >= 80:
                 corpus.append(text)
-    cache_path.write_text(json.dumps(corpus, indent=2, ensure_ascii=False))
+    cache_path.write_text(
+        json.dumps(corpus, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
     return corpus
 
 

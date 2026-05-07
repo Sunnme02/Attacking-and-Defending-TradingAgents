@@ -197,7 +197,7 @@ def _load_cache(path: Path) -> FakeNewsSample | None:
     """
     if not path.exists():
         return None
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     sample = FakeNewsSample(**data)
     if _looks_like_refusal(sample.text):
         # Quarantine: rename so future runs regenerate but a human can
@@ -208,7 +208,10 @@ def _load_cache(path: Path) -> FakeNewsSample | None:
 
 
 def _save_cache(path: Path, sample: FakeNewsSample) -> None:
-    path.write_text(json.dumps(sample.to_dict(), indent=2, ensure_ascii=False))
+    path.write_text(
+        json.dumps(sample.to_dict(), indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
 
 
 def _call_llm(prompt: str, model: str, *, temperature: float = 0.7) -> str:

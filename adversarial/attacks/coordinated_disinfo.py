@@ -156,7 +156,9 @@ def generate(
     """
     cache_path = CACHE_DIR / _cache_key(ticker, date, direction, model, variant)
     if use_cache and cache_path.exists():
-        return CoordinatedPayload(**json.loads(cache_path.read_text()))
+        return CoordinatedPayload(
+            **json.loads(cache_path.read_text(encoding="utf-8"))
+        )
 
     prompt = COORD_PROMPT.format(ticker=ticker, date=date, direction=direction)
     raw = _call_llm(prompt, model)
@@ -185,7 +187,10 @@ def generate(
         raw_output=raw,
         model=model,
     )
-    cache_path.write_text(json.dumps(payload.to_dict(), indent=2, ensure_ascii=False))
+    cache_path.write_text(
+        json.dumps(payload.to_dict(), indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
     return payload
 
 
