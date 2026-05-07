@@ -223,14 +223,48 @@ def run_skeptic_live(
 # ---------------------------------------------------------------------------
 # D4 — Anomaly Filter (offline, no API key)
 # ---------------------------------------------------------------------------
+# FinBERT scores precomputed on the 3 sample inputs (computed locally with
+# torch + ProsusAI/finbert installed; replayed in the demo to avoid
+# shipping torch/transformers + a 440 MB model into Streamlit Cloud).
+# Re-compute these whenever SAMPLE_NEWS texts change:
+#     python3 -c "from adversarial.judges import stealth; \
+#                 from adversarial.demo.skeptic_runner import SAMPLE_NEWS; \
+#                 [print(k, stealth.score(v['text']).stealth_score_finbert) \
+#                  for k, v in SAMPLE_NEWS.items()]"
+CACHED_FINBERT_SCORES: dict[str, float] = {
+    "clean_pltr":   0.7820,   # FinBERT thinks it's quite real-news-like
+    "fake_tender":  0.8455,   # institutional tone fools FinBERT
+    "social_panic": 0.7192,   # FinBERT lenient on retail tone (lexical: 0.10)
+}
+
+
 @dataclass
 class AnomalyFilterResult:
-    """One segment of input scored by the lexical stealth metric."""
+    """Stealth metric output. Both backends optional."""
     text_preview: str
     char_count: int
-    score_lexical: float          # 0 = anomalous, 1 = real-news-like
-    verdict: str                  # "natural" | "borderline" | "anomalous"
-    lexical_features: dict        # 9 hand-engineered features
+    score_lexical: float                       # 0 = anomalous, 1 = real-news-like
+    verdict: str                               # "natural" | "borderline" | "anomalous"
+    lexical_features: dict                     # 9 hand-engineered features
+    score_finbert: Optional[float] = None      # set only when input matches a sample
+    finbert_source: str = "unavailable"        # "cached" | "live" | "unavailable"
+
+
+def _match_sample_for_finbert(text: str) -> Optional[str]:
+    """Heuristic match of input to a SAMPLE_NEWS entry → cache key.
+
+    Same logic as ``_match_sample`` (used by the cached Skeptic verdict)
+    but kept separate so the FinBERT cache and the Skeptic cache can
+    evolve independently.
+    """
+    t = (text or "").lower()
+    if "tender offer" in t and ("$25 per share" in t or "188%" in t or "premium" in t):
+        return "fake_tender"
+    if "#pltrpanic" in t or ("to the moon" in t and "sell-off" in t) or "my buddy" in t:
+        return "social_panic"
+    if "aip" in t or "artificial intelligence platform" in t or "fortune 500" in t:
+        return "clean_pltr"
+    return None
 
 
 def run_anomaly_filter_live(
@@ -245,6 +279,9 @@ def run_anomaly_filter_live(
         retail-tone markers, type-token ratio, ...) z-scored against a
         real-news baseline
       • Bigram Jensen-Shannon divergence vs the same baseline corpus
+
+    For the 3 sample inputs we ship cached FinBERT scores so the demo can
+    surface the FinBERT vs lexical comparison without shipping torch.
 
     Args:
         news_text: text to evaluate.
@@ -262,10 +299,26 @@ def run_anomaly_filter_live(
         )
 
     v = stealth.score(text)
+
+    # Try live FinBERT first (works locally where torch is installed),
+    # fall back to the cached score for known sample inputs.
+    finbert_score = None
+    finbert_source = "unavailable"
+    if v.stealth_score_finbert is not None:
+        finbert_score = float(v.stealth_score_finbert)
+        finbert_source = "live"
+    else:
+        sample_key = _match_sample_for_finbert(text)
+        if sample_key and sample_key in CACHED_FINBERT_SCORES:
+            finbert_score = CACHED_FINBERT_SCORES[sample_key]
+            finbert_source = "cached"
+
     return AnomalyFilterResult(
         text_preview=text[:200] + ("..." if len(text) > 200 else ""),
         char_count=len(text),
         score_lexical=float(v.stealth_score_lexical or 0.0),
         verdict=str(v.verdict),
         lexical_features=dict(v.lexical or {}),
+        score_finbert=finbert_score,
+        finbert_source=finbert_source,
     )

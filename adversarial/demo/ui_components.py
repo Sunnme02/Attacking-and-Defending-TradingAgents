@@ -887,7 +887,7 @@ def render_skeptic_tab() -> None:
 
 
 def _render_anomaly_result(r: AnomalyFilterResult, *, compact: bool = False) -> None:
-    """Render a single Anomaly Filter score + lexical breakdown."""
+    """Render Anomaly Filter scores (lexical + FinBERT when available)."""
     verdict_color = {
         "natural": "#10b981",
         "borderline": "#f59e0b",
@@ -895,19 +895,61 @@ def _render_anomaly_result(r: AnomalyFilterResult, *, compact: bool = False) -> 
     }
     color = verdict_color.get(r.verdict, "#94a3b8")
 
-    cols = st.columns(3)
+    # Top metrics row — always shows lexical + verdict; adds FinBERT only
+    # when present (live torch / shipped cached score for known samples).
+    has_finbert = r.score_finbert is not None
+    cols = st.columns(4 if has_finbert else 3)
     cols[0].metric(
-        "Stealth score",
+        "Lexical score",
         f"{r.score_lexical:.3f}",
-        help="0 = anomalous synthetic content, 1 = looks like real news.",
+        help="9 hand-engineered features + bigram JS divergence vs real-news baseline. 0 = anomalous, 1 = real-news-like.",
     )
-    cols[1].markdown(
-        f"<div style='text-align:center;'><b>Verdict</b><br>"
+
+    if has_finbert:
+        cols[1].metric(
+            f"FinBERT score",
+            f"{r.score_finbert:.3f}",  # type: ignore[arg-type]
+            help=(
+                "FinBERT [CLS] embedding cosine similarity to a real-news "
+                f"centroid. Source: {r.finbert_source}. "
+                "Compare to the lexical score — divergence reveals which "
+                "backend each kind of fake content fools."
+            ),
+        )
+        verdict_col = cols[2]
+        len_col = cols[3]
+    else:
+        verdict_col = cols[1]
+        len_col = cols[2]
+
+    verdict_col.markdown(
+        f"<div style='text-align:center;'><b>Lexical verdict</b><br>"
         f"<span style='color:{color};font-size:1.4rem;font-weight:700;'>"
         f"{r.verdict.upper()}</span></div>",
         unsafe_allow_html=True,
     )
-    cols[2].metric("Length", f"{r.char_count} chars")
+    len_col.metric("Length", f"{r.char_count} chars")
+
+    if has_finbert and not compact:
+        if r.finbert_source == "cached":
+            st.caption(
+                "💡 **FinBERT score above is precomputed** (the deployed app "
+                "doesn't ship torch + the 440 MB FinBERT model). Locally with "
+                "`pip install torch transformers`, FinBERT runs live."
+            )
+        # Surface the cross-backend interpretation directly.
+        diff = (r.score_finbert or 0.0) - r.score_lexical
+        if abs(diff) >= 0.2:
+            backend_label = (
+                "**FinBERT rates this much more real-looking than lexical** — "
+                "this is the canonical signature of *institutional-tone synthetic "
+                "content* (proper financial vocabulary fools the deep model; "
+                "surface-statistics catch what FinBERT misses)."
+                if diff > 0 else
+                "**Lexical rates this much more real-looking than FinBERT** — "
+                "the input is statistically natural-looking but semantically off."
+            )
+            st.markdown(f"<small>{backend_label}</small>", unsafe_allow_html=True)
 
     feature_label = {
         "sent_count":          "Sentences",
