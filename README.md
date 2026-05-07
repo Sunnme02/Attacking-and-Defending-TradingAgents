@@ -120,9 +120,9 @@ See [`paper/5293report.pdf`](paper/5293report.pdf) §6 and the per-batch CSVs in
 ### Quick install
 
 ```bash
-# 1. Clone your fork
-git clone https://github.com/<your-username>/TradingAgents.git
-cd TradingAgents
+# 1. Clone the repo
+git clone https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents.git
+cd Attacking-and-Defending-TradingAgents
 
 # 2. Install upstream framework + adversarial dependencies
 pip install -e .
@@ -139,14 +139,15 @@ cp .env.example .env
 ### Verify the install
 
 ```bash
-# Smoke-test the injection pipeline (no LLM call)
-python -m pytest adversarial/test_injection_smoke.py -v
+# Run the adversarial unit tests (19 tests, no LLM/network calls)
+pip install pytest
+python -m pytest tests/test_adversarial_*.py -v
 
-# Verify the data loader sees all 1,210 cached trials
-python adversarial/demo/data_loader.py
+# (Optional) integration smoke test — also no LLM calls
+python -m pytest adversarial/test_injection_smoke.py -v
 ```
 
-If both commands succeed you're ready to run the demo or rerun
+If the unit tests pass you're ready to run the demo or reproduce the
 experiments.
 
 ---
@@ -272,10 +273,10 @@ defense documentation.
   and persisted under `adversarial/data/`. Re-running an experiment
   hits the cache by default (`use_cache=True`).
 - **Caching across layers.** A1 fake-news samples and A2 coordinated
-  bundles are persisted as JSON; per-trial trial outputs are persisted
-  under `adversarial/results/campaign/` and `…/defense_matrix/`. The
-  demo's `data_loader.py` indexes all 1,210 trials in memory in
-  ~200 ms.
+  bundles are persisted as JSON under `adversarial/data/`; per-trial
+  trial outputs are persisted under `adversarial/results/campaign/`
+  and `…/defense_matrix/`. The demo reads cached payloads on demand
+  (no upfront load), keeping deployment startup near-instant.
 - **Refusal handling.** The A1 generator detects model refusals at
   load and generate time and quarantines them rather than persisting
   the refusal text into the cache (where it would silently corrupt
@@ -317,7 +318,7 @@ upstream framework and the paper.
   author = {Gu, Zeyu},
   year   = {2026},
   note   = {Columbia STAT GR5293 final project},
-  url    = {https://github.com/<your-username>/TradingAgents}
+  url    = {https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents}
 }
 
 @article{xiao2024tradingagents,
