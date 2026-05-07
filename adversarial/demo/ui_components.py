@@ -352,13 +352,13 @@ def render_attack_lab_tab() -> None:
 
     api_key_present = bool(os.environ.get("OPENAI_API_KEY"))
 
-    # Sub-toggle between A1 / A2
+    # Sub-toggle between Fake News / Cross-Channel
     sub = st.radio(
         "Attack to generate",
         options=["a1", "a2"],
         format_func=lambda k: {
-            "a1": "🎯 A1 — Fake News (single article + LLM-Judge QC)",
-            "a2": "📡 A2 — Cross-Channel (1 article + 5 social posts, integrated)",
+            "a1": "🎯 Fake News  (single article + LLM-Judge QC)",
+            "a2": "📡 Cross-Channel  (1 article + 5 social posts, integrated)",
         }[k],
         horizontal=True,
         key="attack_lab_sub",
@@ -372,30 +372,36 @@ def render_attack_lab_tab() -> None:
 
 # ----- A1 sub-panel --------------------------------------------------------
 def _render_a1_panel(api_key_present: bool) -> None:
+    """Two-mode panel:
+
+    • No API key → SEC seed limited to 2 cached cases, ticker/date limited
+      to 5 cached pairs. Pure cached read.
+    • API key   → All 8 SEC seeds + free-form ticker + free-form date.
+                  Live LLM generation enabled.
+    """
+    if api_key_present:
+        _render_a1_unlocked()
+    else:
+        _render_a1_locked()
+
+
+def _render_a1_locked() -> None:
+    """Cached-only mode (no API key). Show only options that are
+    guaranteed to hit a pre-generated payload on disk."""
+    st.info(
+        "🔒 **Cached-only mode.** Pick one of the 2 SEC cases × 5 ticker pairs "
+        "we ship with. Paste a key in the sidebar to unlock the other 6 SEC "
+        "cases and free-form ticker / date input."
+    )
+
     cols = st.columns(3)
 
-    # Only the 2 cases below ship with pre-generated cached payloads for
-    # every ticker. The other 6 SEC seeds require a live LLM generation,
-    # which needs an API key. So when no key is present, hide the
-    # uncached options to prevent silent cache-miss → key-required
-    # error.
-    if api_key_present:
-        case_options = SEC_CASE_OPTIONS
-    else:
-        case_options = [c for c in SEC_CASE_OPTIONS if c[0] in A1_CASES_WITH_CACHE]
-
+    case_options = [c for c in SEC_CASE_OPTIONS if c[0] in A1_CASES_WITH_CACHE]
     case_idx = cols[0].selectbox(
         "SEC seed case",
         options=range(len(case_options)),
         format_func=lambda i: case_options[i][1],
-        key=f"a1_case_idx_{int(api_key_present)}",  # reset selection on key state change
-        help=(
-            "Only seeds with shipped cached payloads are listed because no "
-            "API key is set. Paste a key in the sidebar to unlock the other "
-            "6 SEC seeds."
-            if not api_key_present
-            else None
-        ),
+        key="a1_case_idx_locked",
     )
     case_id, _, native_dir = case_options[case_idx]
 
@@ -403,7 +409,7 @@ def _render_a1_panel(api_key_present: bool) -> None:
         "Target ticker / date",
         options=range(len(TICKER_DATE_OPTIONS)),
         format_func=lambda i: f"{TICKER_DATE_OPTIONS[i][0]} ({TICKER_DATE_OPTIONS[i][1]})",
-        key="a1_td_idx",
+        key="a1_td_idx_locked",
     )
     ticker, date = TICKER_DATE_OPTIONS[td_idx]
 
@@ -415,14 +421,74 @@ def _render_a1_panel(api_key_present: bool) -> None:
         unsafe_allow_html=True,
     )
 
+    _render_a1_run_controls(case_id, ticker, date, api_key_present=False)
+
+
+def _render_a1_unlocked() -> None:
+    """Free-form mode (API key set). All 8 SEC seeds available, custom
+    ticker and date inputs."""
+    import datetime as _dt
+
+    st.success(
+        "✨ **Free generation mode.** Pick any of the 8 SEC seeds and type "
+        "any ticker / date. The LLM generates a fresh article (with QC) "
+        "and the result is cached on disk for instant replay."
+    )
+
+    cols = st.columns([2, 1, 1, 1])
+
+    case_options = SEC_CASE_OPTIONS
+    case_idx = cols[0].selectbox(
+        "SEC seed case (all 8 unlocked)",
+        options=range(len(case_options)),
+        format_func=lambda i: case_options[i][1],
+        key="a1_case_idx_unlocked",
+    )
+    case_id, _, native_dir = case_options[case_idx]
+
+    ticker_raw = cols[1].text_input(
+        "Ticker",
+        value="PLTR",
+        max_chars=6,
+        key="a1_ticker_unlocked",
+        help="Any equity ticker symbol. Will be uppercased automatically.",
+    )
+    ticker = ticker_raw.strip().upper() or "PLTR"
+
+    date_obj = cols[2].date_input(
+        "Trade date",
+        value=_dt.date(2025, 12, 9),
+        min_value=_dt.date(2020, 1, 1),
+        max_value=_dt.date(2026, 12, 31),
+        key="a1_date_unlocked",
+    )
+    date = date_obj.strftime("%Y-%m-%d")
+
+    cols[3].markdown(
+        f"<div style='padding-top:1.8rem;color:#64748b;font-size:0.85rem;'>"
+        f"Native direction:<br><b>{native_dir}</b>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    _render_a1_run_controls(case_id, ticker, date, api_key_present=True)
+
+
+def _render_a1_run_controls(
+    case_id: str, ticker: str, date: str, *, api_key_present: bool
+) -> None:
+    """Common Generate button + spinner + result rendering for both modes."""
     cols2 = st.columns([1, 1, 4])
     use_cache = cols2[0].toggle(
         "Use cached",
         value=not api_key_present,
         help="On = instant disk read. Off = live LLM call (~5-15s).",
-        key="a1_use_cache",
+        key=f"a1_use_cache_{int(api_key_present)}",
     )
-    run_btn = cols2[1].button("▶ Generate", type="primary", key="a1_run_btn")
+    run_btn = cols2[1].button(
+        "▶ Generate", type="primary",
+        key=f"a1_run_btn_{int(api_key_present)}",
+    )
 
     if not api_key_present and not use_cache:
         st.warning(
@@ -432,7 +498,11 @@ def _render_a1_panel(api_key_present: bool) -> None:
         )
 
     if run_btn:
-        spinner_msg = "Reading cached sample…" if use_cache else "LLM generating + LLM-Judge QC (up to 3 attempts)…"
+        spinner_msg = (
+            "Reading cached sample…"
+            if use_cache
+            else "LLM generating + LLM-Judge QC (up to 3 attempts, ~5-15s)…"
+        )
         with st.spinner(spinner_msg):
             try:
                 result = run_fake_news_live(
@@ -440,8 +510,16 @@ def _render_a1_panel(api_key_present: bool) -> None:
                 )
                 st.session_state["a1_last_result"] = result
             except Exception as e:
-                st.error(f"A1 generation failed: {e}")
-                st.info("Tip: toggle **Use cached** for an offline-safe demo path.")
+                msg = str(e)
+                if "Missing credentials" in msg or "OPENAI_API_KEY" in msg:
+                    st.error(
+                        "🔒 Cache miss + no API key. This (case, ticker, date) "
+                        "combination has no pre-generated payload. Paste a key "
+                        "in the sidebar to enable live generation, or pick a "
+                        "different combination."
+                    )
+                else:
+                    st.error(f"Generation failed: {e}")
                 return
 
     result = st.session_state.get("a1_last_result")
@@ -518,36 +596,110 @@ def _render_a1_result(r: FakeNewsResult) -> None:
 
 # ----- A2 sub-panel --------------------------------------------------------
 def _render_a2_panel(api_key_present: bool) -> None:
+    """Two-mode panel:
+
+    • No API key → ticker/date dropdown limited to 5 cached pairs.
+    • API key   → free-form ticker + free-form date.
+    """
+    if api_key_present:
+        _render_a2_unlocked()
+    else:
+        _render_a2_locked()
+
+
+def _render_a2_locked() -> None:
+    """Cached-only mode (no API key)."""
+    st.info(
+        "🔒 **Cached-only mode.** Pick one of the 5 ticker pairs × 2 directions "
+        "we ship with. Paste a key in the sidebar to type any ticker / date."
+    )
+
     cols = st.columns(3)
     td_idx = cols[0].selectbox(
         "Target ticker / date",
         options=range(len(TICKER_DATE_OPTIONS)),
         format_func=lambda i: f"{TICKER_DATE_OPTIONS[i][0]} ({TICKER_DATE_OPTIONS[i][1]})",
-        key="a2_td_idx",
+        key="a2_td_idx_locked",
     )
     ticker, date = TICKER_DATE_OPTIONS[td_idx]
 
     direction = cols[1].radio(
         "Direction", options=["bullish", "bearish"], horizontal=True,
-        key="a2_direction",
+        key="a2_direction_locked",
     )
 
     cols[2].markdown(
-        f"<div style='padding-top:1.8rem;color:#64748b;font-size:0.88rem;'>"
-        f"Output: <b>1 article</b> + <b>5 social posts</b><br>"
-        f"<span style='color:#94a3b8;font-size:0.78rem;'>"
-        f"institutional tone (no retail markers by design)</span></div>",
+        "<div style='padding-top:1.8rem;color:#64748b;font-size:0.88rem;'>"
+        "Output: <b>1 article</b> + <b>5 social posts</b><br>"
+        "<span style='color:#94a3b8;font-size:0.78rem;'>"
+        "institutional tone (no retail markers by design)</span></div>",
         unsafe_allow_html=True,
     )
 
+    _render_a2_run_controls(ticker, date, direction, api_key_present=False)
+
+
+def _render_a2_unlocked() -> None:
+    """Free-form mode (API key set)."""
+    import datetime as _dt
+
+    st.success(
+        "✨ **Free generation mode.** Type any ticker / date and pick a "
+        "direction. The LLM produces 1 article + 5 institutional-tone "
+        "social posts that explicitly cite the article — fabricating "
+        "cross-source corroboration."
+    )
+
+    cols = st.columns([1, 1, 1, 1])
+
+    ticker_raw = cols[0].text_input(
+        "Ticker",
+        value="PLTR",
+        max_chars=6,
+        key="a2_ticker_unlocked",
+        help="Any equity ticker symbol. Will be uppercased automatically.",
+    )
+    ticker = ticker_raw.strip().upper() or "PLTR"
+
+    date_obj = cols[1].date_input(
+        "Trade date",
+        value=_dt.date(2025, 12, 9),
+        min_value=_dt.date(2020, 1, 1),
+        max_value=_dt.date(2026, 12, 31),
+        key="a2_date_unlocked",
+    )
+    date = date_obj.strftime("%Y-%m-%d")
+
+    direction = cols[2].radio(
+        "Direction", options=["bullish", "bearish"], horizontal=True,
+        key="a2_direction_unlocked",
+    )
+
+    cols[3].markdown(
+        "<div style='padding-top:1.8rem;color:#64748b;font-size:0.85rem;'>"
+        "Output:<br><b>1 article + 5 posts</b>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    _render_a2_run_controls(ticker, date, direction, api_key_present=True)
+
+
+def _render_a2_run_controls(
+    ticker: str, date: str, direction: str, *, api_key_present: bool
+) -> None:
+    """Common Generate button + spinner + result rendering."""
     cols2 = st.columns([1, 1, 4])
     use_cache = cols2[0].toggle(
         "Use cached",
         value=not api_key_present,
         help="On = instant disk read. Off = live LLM call (~10-20s).",
-        key="a2_use_cache",
+        key=f"a2_use_cache_{int(api_key_present)}",
     )
-    run_btn = cols2[1].button("▶ Generate", type="primary", key="a2_run_btn")
+    run_btn = cols2[1].button(
+        "▶ Generate", type="primary",
+        key=f"a2_run_btn_{int(api_key_present)}",
+    )
 
     if not api_key_present and not use_cache:
         st.warning(
@@ -560,7 +712,7 @@ def _render_a2_panel(api_key_present: bool) -> None:
         spinner_msg = (
             "Reading cached sample…"
             if use_cache
-            else "LLM generating coordinated bundle (1 article + 5 posts, ~15s)…"
+            else "LLM generating coordinated bundle (1 article + 5 posts, ~10-20s)…"
         )
         with st.spinner(spinner_msg):
             try:
@@ -569,8 +721,16 @@ def _render_a2_panel(api_key_present: bool) -> None:
                 )
                 st.session_state["a2_last_result"] = result
             except Exception as e:
-                st.error(f"A2 generation failed: {e}")
-                st.info("Tip: toggle **Use cached** for an offline-safe demo path.")
+                msg = str(e)
+                if "Missing credentials" in msg or "OPENAI_API_KEY" in msg:
+                    st.error(
+                        "🔒 Cache miss + no API key. This (ticker, date, direction) "
+                        "combination has no pre-generated payload. Paste a key "
+                        "in the sidebar to enable live generation, or pick a "
+                        "different combination."
+                    )
+                else:
+                    st.error(f"Generation failed: {e}")
                 return
 
     result = st.session_state.get("a2_last_result")
