@@ -17,10 +17,12 @@ needs an API key.
 
 from __future__ import annotations
 
+import concurrent.futures
 import os
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Iterator, Optional
+from typing import Any, Callable, Iterator, Optional
 
 from adversarial.attacks.coordinated_disinfo import (
     CoordinatedPayload,
@@ -306,3 +308,57 @@ def run_memory_poisoning_live(
         rendered_log=rendered,
         seed=seed,
     )
+
+
+# ---------------------------------------------------------------------------
+# Async submit/poll helpers (so the demo doesn't freeze while LLM runs)
+# ---------------------------------------------------------------------------
+# Streamlit re-runs the script on every widget interaction, including tab /
+# radio changes. A synchronous live-LLM call (5–20 s for A1/A2) gets
+# cancelled the moment the user touches anything.
+#
+# To support "click Generate → switch to another attack → talk about it →
+# switch back → see the result", we submit the call to a module-level
+# ThreadPoolExecutor. The future lives across re-runs in
+# ``st.session_state``; on each render we poll ``future.done()`` and pick
+# up the result when it's ready.
+#
+# Notes
+# -----
+# • The executor is a module-level singleton — survives across reruns
+#   because module objects are cached by Python's import system inside
+#   the long-lived Streamlit process.
+# • LLM calls are I/O bound, so a small thread pool is sufficient.
+# • Cancellation is best-effort: clicking Generate again while one is
+#   running starts a fresh job and lets the old one complete in the
+#   background (its result is just discarded).
+_ASYNC_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=4)
+
+
+@dataclass
+class AsyncJob:
+    """A submitted background task + its starting timestamp.
+
+    The wrapper exists so callers don't depend on ``concurrent.futures``
+    types directly and so we can compute elapsed seconds for the UI.
+    """
+    future: concurrent.futures.Future
+    started_at: float
+    label: str = ""
+
+    @property
+    def done(self) -> bool:
+        return self.future.done()
+
+    @property
+    def elapsed_seconds(self) -> float:
+        return time.time() - self.started_at
+
+    def result(self) -> Any:
+        return self.future.result()
+
+
+def submit_async(label: str, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> AsyncJob:
+    """Submit a callable to the demo's background thread pool."""
+    future = _ASYNC_EXECUTOR.submit(fn, *args, **kwargs)
+    return AsyncJob(future=future, started_at=time.time(), label=label)

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import html
 import os
+from typing import Optional
 
 import streamlit as st
 
@@ -55,12 +56,14 @@ from adversarial.demo.attack_runner import (
     A1_CASES_WITH_CACHE,
     SEC_CASE_OPTIONS,
     TICKER_DATE_OPTIONS,
+    AsyncJob,
     CrossChannelResult,
     FakeNewsResult,
     MemoryPoisoningResult,
     run_cross_channel_live,
     run_fake_news_live,
     run_memory_poisoning_live,
+    submit_async,
 )
 from adversarial.demo.skeptic_runner import (
     SAMPLE_NEWS,
@@ -254,7 +257,12 @@ def _render_a1_unlocked() -> None:
 def _render_a1_run_controls(
     case_id: str, ticker: str, date: str, *, api_key_present: bool
 ) -> None:
-    """Common Generate button + spinner + result rendering for both modes."""
+    """Generate button + async submit + future poll.
+
+    The LLM call is submitted to a background thread pool so the user
+    can switch to other attack panels while it runs and come back to
+    see the result populated.
+    """
     cols2 = st.columns([1, 1, 4])
     use_cache = cols2[0].toggle(
         "Use cached",
@@ -275,35 +283,70 @@ def _render_a1_run_controls(
         )
 
     if run_btn:
-        spinner_msg = (
-            "Reading cached sample…"
-            if use_cache
-            else "LLM generating + LLM-Judge QC (up to 3 attempts, ~5-15s)…"
+        st.session_state["a1_job"] = submit_async(
+            "a1",
+            run_fake_news_live,
+            case_id, ticker, date,
+            use_cache=use_cache,
+            api_key=get_session_api_key() or None,
         )
-        with st.spinner(spinner_msg):
+        # Clear any stale prior result so the UI shows the spinner first
+        st.session_state.pop("a1_last_result", None)
+        st.session_state.pop("a1_error", None)
+        st.rerun()
+
+    _poll_attack_job("a1", FakeNewsResult, _render_a1_result)
+
+
+def _poll_attack_job(
+    key: str,
+    result_type: type,
+    render_fn,
+) -> None:
+    """Poll a session-stored AsyncJob and render its outcome.
+
+    ``key`` is the prefix used for session_state ("a1" / "a2"). We look
+    up ``{key}_job`` (the AsyncJob), ``{key}_last_result`` (the resolved
+    result), and ``{key}_error`` (a failure message).
+
+    While the job is in flight, we show a non-blocking status banner —
+    the user is FREE to switch to a different sub-tab; when they come
+    back, the next render naturally picks up the completed result
+    because Streamlit reruns on tab switch.
+    """
+    job: Optional[AsyncJob] = st.session_state.get(f"{key}_job")
+    if job is not None:
+        if job.done:
             try:
-                result = run_fake_news_live(
-                    case_id, ticker, date,
-                    use_cache=use_cache,
-                    api_key=get_session_api_key() or None,
-                )
-                st.session_state["a1_last_result"] = result
+                st.session_state[f"{key}_last_result"] = job.result()
             except Exception as e:
                 msg = str(e)
                 if "Missing credentials" in msg or "OPENAI_API_KEY" in msg:
-                    st.error(
-                        "🔒 Cache miss + no API key. This (case, ticker, date) "
-                        "combination has no pre-generated payload. Paste a key "
-                        "in the sidebar to enable live generation, or pick a "
-                        "different combination."
+                    st.session_state[f"{key}_error"] = (
+                        "🔒 Cache miss + no API key. This combination has no "
+                        "pre-generated payload. Paste a key in the sidebar "
+                        "or pick a different combination."
                     )
                 else:
-                    st.error(f"Generation failed: {e}")
-                return
+                    st.session_state[f"{key}_error"] = f"Generation failed: {e}"
+            st.session_state.pop(f"{key}_job", None)
+        else:
+            st.info(
+                f"⏳ **Generating in background** ({int(job.elapsed_seconds)} s elapsed). "
+                f"You can **switch to another attack** to talk about it — "
+                f"the result will be waiting here when you switch back. "
+                f"Click **🔄 Refresh** below to check now."
+            )
+            if st.button("🔄 Refresh", key=f"{key}_refresh"):
+                st.rerun()
 
-    result = st.session_state.get("a1_last_result")
-    if isinstance(result, FakeNewsResult):
-        _render_a1_result(result)
+    error = st.session_state.get(f"{key}_error")
+    if error:
+        st.error(error)
+
+    result = st.session_state.get(f"{key}_last_result")
+    if isinstance(result, result_type):
+        render_fn(result)
 
 
 def _render_a1_result(r: FakeNewsResult) -> None:
@@ -467,7 +510,7 @@ def _render_a2_unlocked() -> None:
 def _render_a2_run_controls(
     ticker: str, date: str, direction: str, *, api_key_present: bool
 ) -> None:
-    """Common Generate button + spinner + result rendering."""
+    """Generate button + async submit + future poll (parallels A1)."""
     cols2 = st.columns([1, 1, 4])
     use_cache = cols2[0].toggle(
         "Use cached",
@@ -488,35 +531,18 @@ def _render_a2_run_controls(
         )
 
     if run_btn:
-        spinner_msg = (
-            "Reading cached sample…"
-            if use_cache
-            else "LLM generating coordinated bundle (1 article + 5 posts, ~10-20s)…"
+        st.session_state["a2_job"] = submit_async(
+            "a2",
+            run_cross_channel_live,
+            ticker, date, direction,
+            use_cache=use_cache,
+            api_key=get_session_api_key() or None,
         )
-        with st.spinner(spinner_msg):
-            try:
-                result = run_cross_channel_live(
-                    ticker, date, direction,
-                    use_cache=use_cache,
-                    api_key=get_session_api_key() or None,
-                )
-                st.session_state["a2_last_result"] = result
-            except Exception as e:
-                msg = str(e)
-                if "Missing credentials" in msg or "OPENAI_API_KEY" in msg:
-                    st.error(
-                        "🔒 Cache miss + no API key. This (ticker, date, direction) "
-                        "combination has no pre-generated payload. Paste a key "
-                        "in the sidebar to enable live generation, or pick a "
-                        "different combination."
-                    )
-                else:
-                    st.error(f"Generation failed: {e}")
-                return
+        st.session_state.pop("a2_last_result", None)
+        st.session_state.pop("a2_error", None)
+        st.rerun()
 
-    result = st.session_state.get("a2_last_result")
-    if isinstance(result, CrossChannelResult):
-        _render_a2_result(result)
+    _poll_attack_job("a2", CrossChannelResult, _render_a2_result)
 
 
 def _render_a2_result(r: CrossChannelResult) -> None:
@@ -606,7 +632,9 @@ def _render_a5_panel(is_unlocked: bool) -> None:
         "Manager's long-term memory.** Unlike Fake News and Cross-Channel, "
         "this attack uses no LLM — 8 fabricated past trades are produced "
         "from a hand-written thesis-template pool plus a seeded RNG. "
-        "This makes A5 the cheapest, fastest attack to demonstrate."
+        "Simpler to construct, but it's the attack with the largest "
+        "measured effect in our paper "
+        "(bearish direction, Δ = −0.42, p_BH < 0.0001)."
     )
 
     if is_unlocked:
