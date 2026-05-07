@@ -1,6 +1,7 @@
 # Attacking and Defending Multi-Agent LLM Trading Systems
 
 [![tests](https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/actions/workflows/tests.yml/badge.svg)](https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/actions/workflows/tests.yml)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://attacking-and-defending-trading-agents.streamlit.app)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
@@ -9,18 +10,27 @@
 > attacks × three defenses across five tickers and both bullish / bearish
 > directions.
 
+🎮 **Live demo:** **<https://attacking-and-defending-trading-agents.streamlit.app>** — generate
+fresh adversarial content with the same code path as the experiments and
+watch the defenses respond in real time. (Bring your own OpenAI key; details below.)
+
+📄 **Paper:** [`paper/5293report.pdf`](paper/5293report.pdf) — *Attacking and Defending
+Multi-Agent LLM Trading Systems*, Columbia STAT GR5293 final project, 2026.
+
 This repository is a **fork of [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents)**.
 The upstream framework is left intact; all of our research code,
 experiments, paper, and demo live under [`adversarial/`](adversarial/) and
 [`paper/`](paper/) (the original upstream README is preserved as
 [`README.upstream.md`](README.upstream.md) for reference).
 
-📄 **Paper:** [`paper/5293report.pdf`](paper/5293report.pdf) — *Attacking and Defending
-Multi-Agent LLM Trading Systems*, Columbia STAT GR5293 final project, 2026.
+## System overview
 
-🎮 **Live demo:** Streamlit app combining 1,200+ pre-computed trial
-lookups with live LLM-driven attack generation and defense invocation —
-see [§ Demo](#-demo).
+Three independent supply-chain entry points are attacked; three
+orthogonal defenses sit at three different architectural layers.
+
+<p align="center">
+  <img src="paper/figures/overview.png" alt="Three attacks at three supply-chain chokepoints; three defenses at three architectural layers." width="86%"/>
+</p>
 
 ---
 
@@ -143,16 +153,24 @@ experiments.
 
 ## 🎮 Demo
 
-A Streamlit app combines pre-computed trial browsing with **live
-attack generation** and **live defense invocation**. It is the
-fastest way to understand what the system does.
+The fastest way to understand what the system does is the deployed
+Streamlit app:
+
+> **🌐 <https://attacking-and-defending-trading-agents.streamlit.app>**
+
+It has two live tabs that exercise the same code path as the paper's
+experiments — paste your own OpenAI API key in the sidebar to unlock
+free-form input + live LLM generation, or use the cached examples
+without a key.
+
+To run the demo locally instead:
 
 ```bash
 ./adversarial/demo/run_demo.sh
 # Opens http://localhost:8765
 ```
 
-The app has four tabs:
+The app has two tabs:
 
 | Tab | Live? | What it shows |
 |---|---|---|
