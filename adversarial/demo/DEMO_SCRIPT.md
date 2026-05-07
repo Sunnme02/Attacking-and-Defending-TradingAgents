@@ -10,7 +10,7 @@
 
 - [ ] `export OPENAI_API_KEY=sk-...` in the shell you'll run from
 - [ ] `./adversarial/demo/run_demo.sh` → opens browser to localhost:8765
-- [ ] Open the **Skeptic — live** tab, click *📰 Clean PLTR baseline* → *Run Skeptic* with live mode → confirm it returns in ~5s
+- [ ] Open the **Defense lab** tab, click *📰 Clean PLTR baseline* → *Run defense* with live mode → confirm it returns in ~5s
 - [ ] Toggle *Use cached example* on; click each of the 3 sample buttons → confirm cache works
 - [ ] Switch back to live mode; clear chat; have **two terminal tabs** ready (one for the app, one for `tail -f` logs in case)
 - [ ] Have backup: a screen-recording video of the full demo, in case projector / WiFi dies
@@ -83,7 +83,7 @@ Open on **default config**: `bullish · PLTR · None (clean) · None`.
 
 ## Act 4 — Skeptic LIVE (2 min)
 
-**Click**: Tab → *🛡️ Skeptic — live*.
+**Click**: Tab → *🛡️ Defense lab*.
 
 > "The cached results are great, but the question is — does the Skeptic
 > *actually catch* novel adversarial content it has never seen? Let's

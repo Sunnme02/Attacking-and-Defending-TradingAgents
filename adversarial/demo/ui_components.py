@@ -113,7 +113,7 @@ def _send_to_skeptic(article_text: str) -> None:
     st.session_state["skeptic_text"] = article_text
     st.session_state.pop("skeptic_last_raw", None)
     st.session_state["skeptic_pending_notice"] = (
-        "📥 Article from Attack lab loaded. Switch to the **Skeptic — live** "
+        "📥 Article from Attack lab loaded. Switch to the **Defense lab** "
         "tab and press ▶ Run to test the defense."
     )
 
@@ -124,7 +124,7 @@ def render_attack_lab_tab() -> None:
         "Generate fresh adversarial content using the same code path the "
         "experiments use. Cached mode reads pre-computed payloads from disk "
         "(instant); live mode invokes the LLM (~5-20s). Generated articles "
-        "can be piped to the Skeptic tab to test detection on **unseen** content."
+        "can be piped to the Defense lab to test detection on **unseen** content."
     )
 
     is_unlocked = api_key_present()
@@ -399,7 +399,7 @@ def _render_a1_result(r: FakeNewsResult) -> None:
     # Action buttons
     cols3 = st.columns([2, 5])
     cols3[0].button(
-        "📤 Send to Skeptic Live",
+        "📤 Send to Defense lab",
         type="primary",
         use_container_width=True,
         on_click=_send_to_skeptic,
@@ -594,7 +594,7 @@ def _render_a2_result(r: CrossChannelResult) -> None:
     # Action buttons
     cols3 = st.columns([2, 2, 3])
     cols3[0].button(
-        "📤 Send article to Skeptic",
+        "📤 Send article to Defense lab",
         type="primary",
         use_container_width=True,
         on_click=_send_to_skeptic,
@@ -602,7 +602,7 @@ def _render_a2_result(r: CrossChannelResult) -> None:
         key="a2_send_skeptic",
     )
     cols3[1].button(
-        "📤 Send posts to Skeptic",
+        "📤 Send posts to Defense lab",
         use_container_width=True,
         on_click=_send_to_skeptic,
         args=(
@@ -776,7 +776,7 @@ def _render_a5_result(r: MemoryPoisoningResult) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Skeptic Live tab
+# Defense lab tab
 # ---------------------------------------------------------------------------
 def _set_skeptic_sample(key: str) -> None:
     """Callback: write sample text into the textarea's session_state key."""
@@ -786,7 +786,7 @@ def _set_skeptic_sample(key: str) -> None:
 
 
 def render_skeptic_tab() -> None:
-    st.markdown("#### 🛡️ Defense panel — live invocation")
+    st.markdown("#### 🛡️ Defense lab — live invocation")
     st.caption(
         "Two defenses, two different angles on the same input. **Skeptic** "
         "is a review-layer LLM that runs a 7-item content checklist (gpt-4o-mini, "

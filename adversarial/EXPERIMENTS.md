@@ -280,7 +280,7 @@ The aggregated, paper-facing CSVs at the top of `results/` are:
   complement the cross-ticker bootstrap.
 
 The CI in
-[`paper/main.tex`](../paper/main.tex) Figures 3 / 4 is
+[`paper/5293report.pdf`](../paper/5293report.pdf) Figures 3 / 4 is
 the cluster-bootstrap one. The right-hand panel of Figure 4 is
 single-ticker (PLTR-only) and labelled as exploratory.
 

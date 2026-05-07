@@ -147,7 +147,7 @@ def _build_api_key_input() -> None:
                     value="",
                     type="password",
                     help=(
-                        "The Attack lab and Skeptic Live tabs make real "
+                        "The Attack lab and Defense lab tabs make real "
                         "OpenAI calls. With a key, you unlock free-form "
                         "ticker / date input and can generate fresh "
                         "adversarial content. Without a key, the demo runs "
@@ -182,7 +182,7 @@ def _build_api_key_input() -> None:
         )
         st.markdown(
             "[📂 View results CSV](https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/tree/main/adversarial/results) · "
-            "[📄 Read the paper](https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/blob/main/paper/main.tex) · "
+            "[📄 Read the paper](https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/blob/main/paper/5293report.pdf) · "
             "[🧪 Experiments guide](https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/blob/main/adversarial/EXPERIMENTS.md)"
         )
 
@@ -216,7 +216,7 @@ def main() -> None:
     tab_attack, tab_skeptic = st.tabs(
         [
             "🚨 Attack lab — live generation",
-            "🛡️ Skeptic Agent — live defense",
+            "🛡️ Defense lab — live invocation",
         ]
     )
 

@@ -15,7 +15,7 @@ experiments, paper, and demo live under [`adversarial/`](adversarial/) and
 [`paper/`](paper/) (the original upstream README is preserved as
 [`README.upstream.md`](README.upstream.md) for reference).
 
-📄 **Paper:** [`paper/main.tex`](paper/main.tex) — *Attacking and Defending
+📄 **Paper:** [`paper/5293report.pdf`](paper/5293report.pdf) — *Attacking and Defending
 Multi-Agent LLM Trading Systems*, Columbia STAT GR5293 final project, 2026.
 
 🎮 **Live demo:** Streamlit app combining 1,200+ pre-computed trial
@@ -47,7 +47,7 @@ The agent exhibits **two-tier adversarial robustness**:
   cover orthogonal architectural layers, and only stacked do they form
   a complete envelope.
 
-See [`paper/main.tex`](paper/main.tex) §6 and the per-batch CSVs in
+See [`paper/5293report.pdf`](paper/5293report.pdf) §6 and the per-batch CSVs in
 [`adversarial/results/`](adversarial/results/) for the full result set.
 
 ---
@@ -79,8 +79,9 @@ See [`paper/main.tex`](paper/main.tex) §6 and the per-batch CSVs in
 │   ├── PROJECT.md            # project notebook (threat model, decisions)
 │   ├── DEFENSES.md           # defense-design doc
 │   └── RESULTS.md            # locked findings + statistical detail
-├── paper/                    # LaTeX source + figures + bibliography
-│   ├── main.tex
+├── paper/                    # PDF + LaTeX source + figures + bibliography
+│   ├── 5293report.pdf        # ← compiled paper (start here)
+│   ├── main.tex              # LaTeX source
 │   ├── refs.bib
 │   └── figures/
 ├── tradingagents/            # ← upstream framework, unmodified
@@ -155,18 +156,23 @@ The app has four tabs:
 
 | Tab | Live? | What it shows |
 |---|---|---|
-| 📊 Decision overview | cached | Modal decision dial + 5-tier histogram + Δ vs clean |
-| 📰 Agent reports | cached | News + social analyst reports for one trial, with attack-content highlighting |
-| 🚨 Attack lab — live | **live** | Generate fresh A1 / A2 attacks via LLM (~5–20 s) and inspect the QC verdict / coordinated bundle |
-| 🛡️ Skeptic — live | **live** | Run the Skeptic Agent's 7-item checklist on user-supplied or generated text (~3–5 s) |
+| 🚨 Attack lab — live generation | **live** | Generate fresh adversarial content via the same code path as the experiments. Three sub-panels: 🎯 Fake News (LLM rewrite of SEC seeds + 4-criterion judge QC), 📡 Cross-Channel (1 article + 5 institutional-tone social posts, integrated), and 🧠 Memory Poisoning (8 fabricated past trades, no LLM). |
+| 🛡️ Defense lab — live invocation | **live** | Two defenses on one input: 🛡️ Skeptic Agent (review-layer LLM, ~3–5 s, 7-item content checklist) and 🔬 Anomaly Filter (input-layer statistical detector, instant — 9 lexical features + Bigram JS divergence + cached FinBERT score). A ⚖️ side-by-side mode runs both on the same input simultaneously. |
 
-The Attack lab and Skeptic tabs both have a **"Use cached" toggle**
+The Attack lab and Defense lab both have a **"Use cached" toggle**
 that returns pre-recorded outputs instantly — useful for offline
 demos or when network / API access is unstable. Generated A1 / A2
-content can be **piped directly into the Skeptic tab** with one
+content can be **piped directly into the Defense lab** with one
 click, demonstrating the end-to-end attack-then-defense pipeline.
 
-A full demo script (8-minute presentation timing, talking points,
+LLM calls in the Attack lab run in a **background thread**, so you
+can switch between sub-panels (or talk through the architecture)
+while the LLM generates — the result waits for you on the panel
+where it was started.
+
+The deployed app expects users to **paste their own OpenAI API key**
+(stored only in the browser session, never logged or persisted). A
+full demo script (8-minute presentation timing, talking points,
 failure-recovery cheatsheet) is in
 [`adversarial/demo/DEMO_SCRIPT.md`](adversarial/demo/DEMO_SCRIPT.md).
 
@@ -275,7 +281,7 @@ defense documentation.
 | `ModuleNotFoundError: tradingagents` | Upstream package not installed | `pip install -e .` from the repo root |
 | `ModuleNotFoundError: streamlit` (or `pandas` / `plotly`) | Demo deps not installed | `pip install -r adversarial/demo/requirements.txt` |
 | Streamlit app blank / "no trials" | You launched from a subdirectory | Run from the repo root: `streamlit run adversarial/demo/app.py` |
-| Skeptic call hangs > 30 s | Network / API rate-limit | Toggle "Use cached example" in the Skeptic tab to fall back to a recorded verdict |
+| Skeptic call hangs > 30 s | Network / API rate-limit | Toggle "Use cached example" in the Defense lab to fall back to a recorded verdict |
 | FinBERT backend errors | `torch` / `transformers` not installed | `pip install torch transformers`, or use `--d4-backend lexical` |
 | Anthropic generator errors when running A1 | `ANTHROPIC_API_KEY` not set | Pass `--model gpt-4o-mini` to the rewriter, or set the key in `.env` |
 | `vendor lookup failed` for a ticker | Picked a ticker without a yfinance baseline | Stick to PLTR / SNOW / HOOD / NVDA / BIIB (the studied set) |
