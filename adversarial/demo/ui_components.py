@@ -20,27 +20,35 @@ import streamlit as st
 # ---------------------------------------------------------------------------
 # Session-scoped API key access
 # ---------------------------------------------------------------------------
+# Snapshot the deployer's intended key at module-import time. We never
+# read os.environ at runtime: doing so would let a previous user's
+# accidental write to os.environ leak across concurrent sessions. The
+# snapshot below represents only what the deployer configured in
+# Streamlit Cloud secrets (the legitimate fallback key, if any).
+DEPLOYER_API_KEY: str = os.environ.get("OPENAI_API_KEY", "").strip()
+
+
 def get_session_api_key() -> str:
     """Return the active OpenAI key for THIS user's Streamlit session.
 
     Resolution order:
       1. ``st.session_state["user_api_key"]`` (key the user pasted into
          the sidebar — isolated per browser session).
-      2. ``OPENAI_API_KEY`` from os.environ (set by the deployer's
-         Streamlit secrets, if any).
+      2. ``DEPLOYER_API_KEY`` (snapshot of os.environ at module load —
+         the deployer's intended fallback, if any).
 
-    Returning the user's session key first means a deployer who set
-    a fallback key in secrets can still override it on a per-session
-    basis. Returns empty string if neither is set.
+    NEVER reads os.environ dynamically. That avoids the situation where
+    one user's key accidentally written into os.environ would be
+    visible to a later user's session.
     """
     session_key = st.session_state.get("user_api_key", "").strip()
     if session_key:
         return session_key
-    return os.environ.get("OPENAI_API_KEY", "")
+    return DEPLOYER_API_KEY
 
 
 def api_key_present() -> bool:
-    """True iff this session has an active key (session-pasted OR env)."""
+    """True iff this session has an active key (session-pasted OR deployer snapshot)."""
     return bool(get_session_api_key())
 
 from adversarial.demo.attack_runner import (

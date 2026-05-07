@@ -36,6 +36,7 @@ except ImportError:
     pass
 
 from adversarial.demo.ui_components import (  # noqa: E402
+    DEPLOYER_API_KEY,
     render_attack_lab_tab,
     render_skeptic_tab,
     render_top_banner,
@@ -132,10 +133,13 @@ def _build_api_key_input() -> None:
     manager (``attack_runner._scoped_openai_key``).
     """
     with st.sidebar:
-        env_key_present = bool(os.environ.get("OPENAI_API_KEY"))
+        # Use the deployer-time snapshot, NOT os.environ at runtime,
+        # so a previous user's accidental write to os.environ can't
+        # masquerade as a deployer-configured key.
+        deployer_set = bool(DEPLOYER_API_KEY)
 
-        with st.expander("🔑 OpenAI API key", expanded=not env_key_present):
-            if env_key_present:
+        with st.expander("🔑 OpenAI API key", expanded=not deployer_set):
+            if deployer_set:
                 st.success("✅ Using key from environment.")
             else:
                 user_key = st.text_input(
