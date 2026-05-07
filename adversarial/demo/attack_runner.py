@@ -1,4 +1,4 @@
-"""Standalone wrappers for live A1 / A2 attack generation in the demo.
+"""Standalone wrappers for live A1 / A2 / A5 attack generation in the demo.
 
 Both `news_rewriter.rewrite()` and `coordinated_disinfo.generate()` already
 accept a ``use_cache`` flag and persist their output as JSON. We expose
@@ -6,20 +6,67 @@ demo-friendly wrappers that:
   • Force a fresh generation when ``use_cache=False`` (live mode).
   • Return the cached sample when ``use_cache=True`` (offline-safe).
   • Surface QC scores / persona breakdowns for UI rendering.
+  • **Session-scope the OpenAI key** — when the demo is hosted publicly,
+    one user's pasted key MUST NOT leak into another concurrent user's
+    LLM call. We scope ``OPENAI_API_KEY`` only for the duration of the
+    LLM call inside this wrapper.
+
+A5 Memory Poisoning is generated locally (template + RNG) and never
+needs an API key.
 """
 
 from __future__ import annotations
 
+import os
+from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Iterator, Optional
 
 from adversarial.attacks.coordinated_disinfo import (
     CoordinatedPayload,
     format_for_injection,
     generate as _generate_coord,
 )
+from adversarial.attacks.memory_poisoning import (
+    PoisonedEntry,
+    build_poison_pack_v2,
+    render_entry,
+)
 from adversarial.attacks.news_rewriter import FakeNewsSample, rewrite as _rewrite_a1
 from adversarial.data.seeds.sec_seeds import SEEDS, get_seed
+
+
+# ---------------------------------------------------------------------------
+# Session-scoped OpenAI key
+# ---------------------------------------------------------------------------
+@contextmanager
+def _scoped_openai_key(api_key: Optional[str]) -> Iterator[None]:
+    """Set ``OPENAI_API_KEY`` in os.environ ONLY for the duration of this
+    block, then restore the previous value.
+
+    Why this matters: Streamlit Cloud runs all user sessions in a single
+    Python process, so ``os.environ`` is shared across concurrent users.
+    If user A pasted their key and we left it in os.environ globally,
+    user B's clicks would silently use A's key. Scoping the assignment
+    to a context manager narrows the leak window to the active LLM call
+    only (~5–20 s), and restores the previous state on exit.
+
+    Pass ``api_key=None`` (or empty string) to leave os.environ untouched
+    — useful when the deployer set OPENAI_API_KEY in the Streamlit secrets
+    and no per-user key is needed.
+    """
+    if not api_key:
+        yield
+        return
+    original = os.environ.get("OPENAI_API_KEY")
+    os.environ["OPENAI_API_KEY"] = api_key
+    try:
+        yield
+    finally:
+        if original is None:
+            os.environ.pop("OPENAI_API_KEY", None)
+        else:
+            os.environ["OPENAI_API_KEY"] = original
 
 
 # ---------------------------------------------------------------------------
@@ -128,6 +175,7 @@ def run_fake_news_live(
     use_cache: bool = False,
     model: str = "gpt-4o-mini",
     max_attempts: int = 3,
+    api_key: Optional[str] = None,
 ) -> FakeNewsResult:
     """Generate (or fetch cached) fake-news article for the given config.
 
@@ -139,22 +187,26 @@ def run_fake_news_live(
             if False, forces a live LLM generation (~5-15s).
         model: generator LLM id.
         max_attempts: max generation attempts before giving up.
+        api_key: per-session OpenAI key. Scoped to this call only — see
+            ``_scoped_openai_key``. Pass None to use whatever key is
+            already in the environment (e.g. from Streamlit secrets).
     """
     # rewrite() accepts ``direction`` as override but only if it matches the
     # seed's native direction. We inspect the seed and pass its native
     # direction explicitly so the UI doesn't have to reason about it.
     seed = get_seed(case_id)
-    sample = _rewrite_a1(
-        case_id=case_id,
-        ticker=ticker,
-        date=date,
-        direction=seed.direction,
-        model=model,
-        use_cache=use_cache,
-        qc=True,
-        qc_model=model,
-        max_attempts=max_attempts,
-    )
+    with _scoped_openai_key(api_key):
+        sample = _rewrite_a1(
+            case_id=case_id,
+            ticker=ticker,
+            date=date,
+            direction=seed.direction,
+            model=model,
+            use_cache=use_cache,
+            qc=True,
+            qc_model=model,
+            max_attempts=max_attempts,
+        )
     return FakeNewsResult.from_sample(sample, used_cache=use_cache)
 
 
@@ -168,6 +220,7 @@ def run_cross_channel_live(
     *,
     use_cache: bool = False,
     model: str = "gpt-4o-mini",
+    api_key: Optional[str] = None,
 ) -> CrossChannelResult:
     """Generate (or fetch cached) cross-channel attack bundle.
 
@@ -177,12 +230,79 @@ def run_cross_channel_live(
         direction: 'bullish' or 'bearish'.
         use_cache: True -> instant cached read; False -> live LLM (~10-20s).
         model: generator LLM id.
+        api_key: see ``run_fake_news_live`` — same semantics.
     """
-    payload = _generate_coord(
+    with _scoped_openai_key(api_key):
+        payload = _generate_coord(
+            ticker=ticker,
+            date=date,
+            direction=direction,
+            model=model,
+            use_cache=use_cache,
+        )
+    return CrossChannelResult.from_payload(payload, used_cache=use_cache)
+
+
+# ---------------------------------------------------------------------------
+# A5 — Memory Poisoning
+# ---------------------------------------------------------------------------
+@dataclass
+class MemoryPoisoningResult:
+    ticker: str
+    date: str
+    direction: str
+    entries: list[PoisonedEntry]   # 5 same-ticker + 3 cross-ticker
+    rendered_log: str              # full memory.md-style text (all entries)
+    seed: int
+
+    @property
+    def n_same_ticker(self) -> int:
+        return sum(1 for e in self.entries if e.ticker == self.ticker)
+
+    @property
+    def n_cross_ticker(self) -> int:
+        return sum(1 for e in self.entries if e.ticker != self.ticker)
+
+
+def run_memory_poisoning_live(
+    ticker: str,
+    date: str,
+    direction: str,
+    *,
+    seed: int = 0,
+    n_same_ticker: int = 5,
+    n_cross_ticker: int = 3,
+) -> MemoryPoisoningResult:
+    """Generate the 8 fabricated memory entries for the A5 attack.
+
+    No API key is required and no LLM is invoked — the entries come from
+    a hand-written thesis-template pool plus a seeded RNG. Re-running with
+    the same ``seed`` produces byte-identical output.
+
+    Args:
+        ticker: target ticker (the agent's "this trade" ticker).
+        date: target trade date (YYYY-MM-DD).
+        direction: 'bullish' or 'bearish'.
+        seed: RNG seed for reproducibility.
+        n_same_ticker: how many fabricated past trades on the same ticker
+            to include (default 5 — fully utilises PM's same-ticker cap).
+        n_cross_ticker: cross-ticker (sector-similar) entries (default 3 —
+            fully utilises PM's cross-ticker cap).
+    """
+    entries = build_poison_pack_v2(
+        target_ticker=ticker,
+        target_date=date,
+        direction=direction,  # type: ignore[arg-type]
+        n_same_ticker=n_same_ticker,
+        n_cross_ticker=n_cross_ticker,
+        seed=seed,
+    )
+    rendered = "".join(render_entry(e) + "\n" for e in entries)
+    return MemoryPoisoningResult(
         ticker=ticker,
         date=date,
         direction=direction,
-        model=model,
-        use_cache=use_cache,
+        entries=entries,
+        rendered_log=rendered,
+        seed=seed,
     )
-    return CrossChannelResult.from_payload(payload, used_cache=use_cache)

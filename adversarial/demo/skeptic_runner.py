@@ -12,6 +12,7 @@ the demo we expose a thin wrapper that:
 from __future__ import annotations
 
 import json
+from typing import Optional
 import os
 import re
 from dataclasses import dataclass, field
@@ -164,12 +165,26 @@ def _match_sample(input_text: str) -> str | None:
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
-def run_skeptic_live(news_text: str, *, use_cache: bool = False) -> str:
+def run_skeptic_live(
+    news_text: str,
+    *,
+    use_cache: bool = False,
+    api_key: Optional[str] = None,
+) -> str:
     """Run the Skeptic Agent on a news_report-only input.
 
-    If `use_cache=True`, returns a recorded verdict (offline-safe).
-    Otherwise calls gpt-4o-mini at temperature=0 (~3-5 seconds).
+    Args:
+        news_text: news article text to evaluate.
+        use_cache: if True, returns a recorded verdict (offline-safe).
+        api_key: per-session OpenAI key. Scoped to this call only via
+            ``attack_runner._scoped_openai_key`` so concurrent users
+            on the same Streamlit instance never share keys. Pass None
+            to use whatever key is already in the environment.
+
+    Live mode calls gpt-4o-mini at temperature=0 (~3-5 seconds).
     """
+    from adversarial.demo.attack_runner import _scoped_openai_key
+
     news_text = (news_text or "").strip()
     if not news_text:
         raise ValueError("News text is empty.")
@@ -187,12 +202,6 @@ def run_skeptic_live(news_text: str, *, use_cache: bool = False) -> str:
             "Toggle 'Use cached example' for offline mode."
         ) from e
 
-    if not os.environ.get("OPENAI_API_KEY"):
-        raise RuntimeError(
-            "OPENAI_API_KEY is not set in the environment."
-        )
-
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.0, max_tokens=600)
     state = {
         "news_report": news_text,
         "sentiment_report": "",
@@ -201,4 +210,62 @@ def run_skeptic_live(news_text: str, *, use_cache: bool = False) -> str:
         "investment_plan": "",
         "trader_investment_plan": "",
     }
-    return _run_skeptic(state, llm)
+    with _scoped_openai_key(api_key):
+        if not os.environ.get("OPENAI_API_KEY"):
+            raise RuntimeError(
+                "OPENAI_API_KEY is not set. Paste your key in the sidebar "
+                "or toggle Use cached for offline mode."
+            )
+        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.0, max_tokens=600)
+        return _run_skeptic(state, llm)
+
+
+# ---------------------------------------------------------------------------
+# D4 — Anomaly Filter (offline, no API key)
+# ---------------------------------------------------------------------------
+@dataclass
+class AnomalyFilterResult:
+    """One segment of input scored by the lexical stealth metric."""
+    text_preview: str
+    char_count: int
+    score_lexical: float          # 0 = anomalous, 1 = real-news-like
+    verdict: str                  # "natural" | "borderline" | "anomalous"
+    lexical_features: dict        # 9 hand-engineered features
+
+
+def run_anomaly_filter_live(
+    news_text: str,
+    *,
+    threshold: float = 0.10,
+) -> AnomalyFilterResult:
+    """Score arbitrary text with the lexical stealth metric (D4 backend).
+
+    No API key required. Runs in <50 ms. The metric mixes:
+      • 9 lexical features (sent length, punctuation density, hedge words,
+        retail-tone markers, type-token ratio, ...) z-scored against a
+        real-news baseline
+      • Bigram Jensen-Shannon divergence vs the same baseline corpus
+
+    Args:
+        news_text: text to evaluate.
+        threshold: scores below this would be filtered out by the
+            production D4 deployment. Default matches the experimental
+            sweep midpoint.
+    """
+    from adversarial.judges import stealth
+
+    text = (news_text or "").strip()
+    if len(text) < 80:
+        raise ValueError(
+            "Need at least 80 characters of text — shorter inputs do not "
+            "carry enough lexical signal for the metric."
+        )
+
+    v = stealth.score(text)
+    return AnomalyFilterResult(
+        text_preview=text[:200] + ("..." if len(text) > 200 else ""),
+        char_count=len(text),
+        score_lexical=float(v.stealth_score_lexical or 0.0),
+        verdict=str(v.verdict),
+        lexical_features=dict(v.lexical or {}),
+    )

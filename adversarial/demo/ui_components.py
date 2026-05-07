@@ -1,8 +1,8 @@
 """Reusable Streamlit UI components for the adversarial-robustness demo.
 
 Two live tabs only:
-  • Attack lab — live LLM-driven generation (Fake News + Cross-Channel)
-  • Skeptic Agent — live invocation against generated or user-supplied text
+  • Attack lab — live LLM-driven generation (Fake News + Cross-Channel + Memory)
+  • Defense panel — live Skeptic + Anomaly Filter invocation
 
 The cached trial-browser tabs were removed by design: the demo focuses on
 *the system operating*, not on data presentation. The full 1,210-trial
@@ -16,19 +16,50 @@ import os
 
 import streamlit as st
 
+
+# ---------------------------------------------------------------------------
+# Session-scoped API key access
+# ---------------------------------------------------------------------------
+def get_session_api_key() -> str:
+    """Return the active OpenAI key for THIS user's Streamlit session.
+
+    Resolution order:
+      1. ``st.session_state["user_api_key"]`` (key the user pasted into
+         the sidebar — isolated per browser session).
+      2. ``OPENAI_API_KEY`` from os.environ (set by the deployer's
+         Streamlit secrets, if any).
+
+    Returning the user's session key first means a deployer who set
+    a fallback key in secrets can still override it on a per-session
+    basis. Returns empty string if neither is set.
+    """
+    session_key = st.session_state.get("user_api_key", "").strip()
+    if session_key:
+        return session_key
+    return os.environ.get("OPENAI_API_KEY", "")
+
+
+def api_key_present() -> bool:
+    """True iff this session has an active key (session-pasted OR env)."""
+    return bool(get_session_api_key())
+
 from adversarial.demo.attack_runner import (
     A1_CASES_WITH_CACHE,
     SEC_CASE_OPTIONS,
     TICKER_DATE_OPTIONS,
     CrossChannelResult,
     FakeNewsResult,
+    MemoryPoisoningResult,
     run_cross_channel_live,
     run_fake_news_live,
+    run_memory_poisoning_live,
 )
 from adversarial.demo.skeptic_runner import (
     SAMPLE_NEWS,
+    AnomalyFilterResult,
     SkepticVerdict,
     parse_skeptic_response,
+    run_anomaly_filter_live,
     run_skeptic_live,
 )
 
@@ -85,24 +116,27 @@ def render_attack_lab_tab() -> None:
         "can be piped to the Skeptic tab to test detection on **unseen** content."
     )
 
-    api_key_present = bool(os.environ.get("OPENAI_API_KEY"))
+    is_unlocked = api_key_present()
 
-    # Sub-toggle between Fake News / Cross-Channel
+    # Sub-toggle between Fake News / Cross-Channel / Memory Poisoning
     sub = st.radio(
         "Attack to generate",
-        options=["a1", "a2"],
+        options=["a1", "a2", "a5"],
         format_func=lambda k: {
             "a1": "🎯 Fake News  (single article + LLM-Judge QC)",
             "a2": "📡 Cross-Channel  (1 article + 5 social posts, integrated)",
+            "a5": "🧠 Memory Poisoning  (8 fabricated past trades — bypasses analysts, no API needed)",
         }[k],
         horizontal=True,
         key="attack_lab_sub",
     )
 
     if sub == "a1":
-        _render_a1_panel(api_key_present)
+        _render_a1_panel(is_unlocked)
+    elif sub == "a2":
+        _render_a2_panel(is_unlocked)
     else:
-        _render_a2_panel(api_key_present)
+        _render_a5_panel(is_unlocked)
 
 
 # ----- A1 sub-panel --------------------------------------------------------
@@ -241,7 +275,9 @@ def _render_a1_run_controls(
         with st.spinner(spinner_msg):
             try:
                 result = run_fake_news_live(
-                    case_id, ticker, date, use_cache=use_cache,
+                    case_id, ticker, date,
+                    use_cache=use_cache,
+                    api_key=get_session_api_key() or None,
                 )
                 st.session_state["a1_last_result"] = result
             except Exception as e:
@@ -452,7 +488,9 @@ def _render_a2_run_controls(
         with st.spinner(spinner_msg):
             try:
                 result = run_cross_channel_live(
-                    ticker, date, direction, use_cache=use_cache,
+                    ticker, date, direction,
+                    use_cache=use_cache,
+                    api_key=get_session_api_key() or None,
                 )
                 st.session_state["a2_last_result"] = result
             except Exception as e:
@@ -549,6 +587,158 @@ def _render_a2_result(r: CrossChannelResult) -> None:
         st.code(r.combined_block, language="text")
 
 
+# ----- A5 sub-panel --------------------------------------------------------
+def _render_a5_panel(is_unlocked: bool) -> None:
+    """Memory poisoning generates entirely from local templates + RNG —
+    NO LLM call. So the locked / unlocked split is just about whether
+    the user can type custom ticker / date.
+    """
+    st.info(
+        "🧠 **Memory Poisoning attacks the third channel: the Portfolio "
+        "Manager's long-term memory.** Unlike Fake News and Cross-Channel, "
+        "this attack uses no LLM — 8 fabricated past trades are produced "
+        "from a hand-written thesis-template pool plus a seeded RNG. "
+        "This makes A5 the cheapest, fastest attack to demonstrate."
+    )
+
+    if is_unlocked:
+        _render_a5_unlocked()
+    else:
+        _render_a5_locked()
+
+
+def _render_a5_locked() -> None:
+    cols = st.columns(3)
+    td_idx = cols[0].selectbox(
+        "Target ticker / date",
+        options=range(len(TICKER_DATE_OPTIONS)),
+        format_func=lambda i: f"{TICKER_DATE_OPTIONS[i][0]} ({TICKER_DATE_OPTIONS[i][1]})",
+        key="a5_td_idx_locked",
+    )
+    ticker, date = TICKER_DATE_OPTIONS[td_idx]
+
+    direction = cols[1].radio(
+        "Direction", options=["bullish", "bearish"], horizontal=True,
+        key="a5_direction_locked",
+    )
+
+    seed = cols[2].number_input(
+        "Seed", min_value=0, max_value=99, value=0,
+        key="a5_seed_locked",
+        help="Deterministic — same seed gives identical 8 entries.",
+    )
+
+    _render_a5_run(ticker, date, direction, int(seed))
+
+
+def _render_a5_unlocked() -> None:
+    import datetime as _dt
+
+    cols = st.columns([1, 1, 1, 1])
+    ticker_raw = cols[0].text_input(
+        "Ticker", value="PLTR", max_chars=6, key="a5_ticker_unlocked",
+    )
+    ticker = ticker_raw.strip().upper() or "PLTR"
+
+    date_obj = cols[1].date_input(
+        "Trade date",
+        value=_dt.date(2025, 12, 9),
+        min_value=_dt.date(2020, 1, 1),
+        max_value=_dt.date(2026, 12, 31),
+        key="a5_date_unlocked",
+    )
+    date = date_obj.strftime("%Y-%m-%d")
+
+    direction = cols[2].radio(
+        "Direction", options=["bullish", "bearish"], horizontal=True,
+        key="a5_direction_unlocked",
+    )
+
+    seed = cols[3].number_input(
+        "Seed", min_value=0, max_value=99, value=0,
+        key="a5_seed_unlocked",
+    )
+
+    _render_a5_run(ticker, date, direction, int(seed))
+
+
+def _render_a5_run(ticker: str, date: str, direction: str, seed: int) -> None:
+    cols2 = st.columns([1, 4])
+    if cols2[0].button("▶ Generate", type="primary", key="a5_run_btn"):
+        try:
+            result = run_memory_poisoning_live(
+                ticker, date, direction, seed=seed,
+            )
+            st.session_state["a5_last_result"] = result
+        except Exception as e:
+            st.error(f"Memory poisoning generation failed: {e}")
+            return
+
+    result = st.session_state.get("a5_last_result")
+    if isinstance(result, MemoryPoisoningResult):
+        _render_a5_result(result)
+
+
+def _render_a5_result(r: MemoryPoisoningResult) -> None:
+    st.markdown(
+        f"##### Generated memory log &nbsp;·&nbsp; "
+        f"<span style='font-size:0.85rem;color:#64748b;'>"
+        f"{r.ticker} · {r.date} · {r.direction} · seed={r.seed}</span>",
+        unsafe_allow_html=True,
+    )
+
+    cols = st.columns(3)
+    cols[0].metric("Entries", len(r.entries), help="5 same-ticker + 3 cross-ticker = full PM cap")
+    cols[1].metric(
+        "Avg fabricated alpha",
+        f"+{sum(e.alpha_pct for e in r.entries) / len(r.entries):.1f}%",
+        help="Calibrated to look real-but-significant (4-8% range)",
+    )
+    cols[2].metric(
+        "All entries direction",
+        r.entries[0].rating,
+        help="Every fabricated trade nudges PM the same way",
+    )
+
+    st.markdown(
+        "**Each entry mimics the format the real Portfolio Manager writes "
+        "to its memory log.** When written before a trial starts, it bypasses "
+        "the News, Social, Trader, and Risk Team agents entirely — only the "
+        "PM reads memory."
+    )
+
+    # Render each entry as a card
+    for i, e in enumerate(r.entries, 1):
+        is_same_ticker = e.ticker == r.ticker
+        badge = "📌 same-ticker" if is_same_ticker else "🔗 cross-ticker"
+        badge_color = "#dc2626" if is_same_ticker else "#9333ea"
+
+        st.markdown(
+            f"<div class='report-card poisoned'>"
+            f"<h4>"
+            f"#{i} &nbsp; <code>[{e.date} | {e.ticker} | {e.rating} | "
+            f"{e.raw_return_pct:+.1f}% | {e.alpha_pct:+.1f}% | {e.hold_days}d]</code> "
+            f"&nbsp;<span style='color:{badge_color};font-size:0.78rem;font-weight:normal;text-transform:none;'>{badge}</span>"
+            f"</h4>"
+            f"<b>Theme:</b> {html.escape(e.theme)}<br>"
+            f"<b>Thesis:</b> {html.escape(e.thesis)}<br><br>"
+            f"<b>Reflection:</b><br>"
+            f"<mark class='poison-hl'>{html.escape(e.reflection)}</mark>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+    with st.expander("🔬 Full rendered memory log (what gets written to disk)"):
+        st.code(r.rendered_log, language="text")
+        st.caption(
+            "This is exactly the file that gets written to the trial's "
+            "isolated memory log before TradingAgents starts the run. "
+            "The Portfolio Manager reads it as if it were genuine past "
+            "experience — and the directive 'LESSON LEARNED ... hard rule "
+            "in my playbook' phrasing nudges it from anecdote to decision rule."
+        )
+
+
 # ---------------------------------------------------------------------------
 # Skeptic Live tab
 # ---------------------------------------------------------------------------
@@ -560,11 +750,15 @@ def _set_skeptic_sample(key: str) -> None:
 
 
 def render_skeptic_tab() -> None:
-    st.markdown("#### 🛡️ Skeptic Agent — live invocation")
+    st.markdown("#### 🛡️ Defense panel — live invocation")
     st.caption(
-        "The Skeptic Agent (one of our three defenses) reads the analyst reports "
-        "and runs a 7-item provenance/sourcing checklist. Below it runs against "
-        "your input as the news report; gpt-4o-mini, temperature=0, ~3-5s."
+        "Two defenses, two different angles on the same input. **Skeptic** "
+        "is a review-layer LLM that runs a 7-item content checklist (gpt-4o-mini, "
+        "T=0, ~3-5 s). **Anomaly Filter** is an input-layer statistical detector "
+        "(9 lexical features + bigram JS divergence vs a real-news baseline; "
+        "no LLM, instant). Picking 'Side-by-side' shows both verdicts on the "
+        "same input — illustrating why the paper concludes that *defense "
+        "composition is the unit of analysis*."
     )
 
     # Pop pending notice from Attack lab → Skeptic chaining
@@ -576,8 +770,19 @@ def render_skeptic_tab() -> None:
     if "skeptic_text" not in st.session_state:
         st.session_state["skeptic_text"] = SAMPLE_NEWS["clean_pltr"]["text"]
 
-    # API key check
-    api_key_present = bool(os.environ.get("OPENAI_API_KEY"))
+    is_unlocked = api_key_present()
+
+    defense_mode = st.radio(
+        "Defense to run",
+        options=["skeptic", "anomaly", "both"],
+        format_func=lambda k: {
+            "skeptic": "🛡️ Skeptic Agent  (review-layer LLM, ~3-5 s)",
+            "anomaly": "🔬 Anomaly Filter  (input-layer statistical, instant, no API)",
+            "both":    "⚖️ Side-by-side  (run both on the same input)",
+        }[k],
+        horizontal=True,
+        key="defense_mode_radio",
+    )
 
     # Sample buttons (use on_click to mutate session_state BEFORE next render)
     cols = st.columns(3)
@@ -600,40 +805,133 @@ def render_skeptic_tab() -> None:
     )
 
     cols2 = st.columns([1, 1, 4])
-    use_cache = cols2[0].toggle(
-        "Use cached example",
-        value=not api_key_present,
-        help="If on, returns a pre-recorded verdict (offline-safe).",
-        key="skeptic_use_cache",
-    )
-    run_button = cols2[1].button("▶ Run Skeptic", type="primary", key="skeptic_run")
 
-    if not api_key_present and not use_cache:
+    # Skeptic needs the cached toggle (it makes a real LLM call); the
+    # Anomaly Filter is purely local and instant, so cached toggle is
+    # only relevant when Skeptic is in the run set.
+    skeptic_in_run = defense_mode in ("skeptic", "both")
+    use_cache = cols2[0].toggle(
+        "Use cached Skeptic verdict",
+        value=not is_unlocked,
+        help=(
+            "Only applies to the Skeptic LLM call. The Anomaly Filter "
+            "runs locally and never needs caching."
+        ),
+        key="skeptic_use_cache",
+        disabled=not skeptic_in_run,
+    )
+    run_button = cols2[1].button(
+        "▶ Run defense", type="primary", key="defense_run_btn",
+    )
+
+    if skeptic_in_run and not is_unlocked and not use_cache:
         st.warning(
-            "🔒 No OpenAI key in this session. Paste your key in the "
-            "**🔑 OpenAI API key** expander in the sidebar, or toggle "
-            "**Use cached example** to demo from the on-disk corpus."
+            "🔒 No OpenAI key. Paste your key in the sidebar, or toggle "
+            "**Use cached Skeptic verdict** to demo from the on-disk corpus."
         )
 
     if run_button:
-        with st.spinner("Skeptic deliberating…"):
-            try:
-                raw = run_skeptic_live(
-                    st.session_state["skeptic_text"], use_cache=use_cache
-                )
-                st.session_state["skeptic_last_raw"] = raw
-            except Exception as e:
-                st.error(f"Skeptic call failed: {e}")
-                st.info(
-                    "Tip: toggle **Use cached example** to fall back to a recorded run."
-                )
-                return
+        text = st.session_state["skeptic_text"]
+        try:
+            if defense_mode in ("skeptic", "both"):
+                with st.spinner("Skeptic deliberating…"):
+                    st.session_state["skeptic_last_raw"] = run_skeptic_live(
+                        text,
+                        use_cache=use_cache,
+                        api_key=get_session_api_key() or None,
+                    )
+            if defense_mode in ("anomaly", "both"):
+                with st.spinner("Anomaly Filter scoring…"):
+                    st.session_state["anomaly_last_result"] = (
+                        run_anomaly_filter_live(text)
+                    )
+        except Exception as e:
+            st.error(f"Defense call failed: {e}")
+            return
 
-    # Render last verdict (persists across reruns until input changes)
-    raw = st.session_state.get("skeptic_last_raw")
-    if raw:
-        verdict = parse_skeptic_response(raw)
-        _render_verdict(verdict, raw)
+    # Render results based on the selected mode
+    if defense_mode == "skeptic":
+        raw = st.session_state.get("skeptic_last_raw")
+        if raw:
+            verdict = parse_skeptic_response(raw)
+            _render_verdict(verdict, raw)
+    elif defense_mode == "anomaly":
+        anom = st.session_state.get("anomaly_last_result")
+        if isinstance(anom, AnomalyFilterResult):
+            _render_anomaly_result(anom)
+    else:  # both — side by side
+        cols_sxs = st.columns(2)
+        with cols_sxs[0]:
+            st.markdown("##### 🛡️ Skeptic verdict")
+            raw = st.session_state.get("skeptic_last_raw")
+            if raw:
+                verdict = parse_skeptic_response(raw)
+                _render_verdict(verdict, raw)
+            else:
+                st.caption("Press ▶ Run defense to populate.")
+        with cols_sxs[1]:
+            st.markdown("##### 🔬 Anomaly Filter verdict")
+            anom = st.session_state.get("anomaly_last_result")
+            if isinstance(anom, AnomalyFilterResult):
+                _render_anomaly_result(anom, compact=True)
+            else:
+                st.caption("Press ▶ Run defense to populate.")
+
+
+def _render_anomaly_result(r: AnomalyFilterResult, *, compact: bool = False) -> None:
+    """Render a single Anomaly Filter score + lexical breakdown."""
+    verdict_color = {
+        "natural": "#10b981",
+        "borderline": "#f59e0b",
+        "anomalous": "#ef4444",
+    }
+    color = verdict_color.get(r.verdict, "#94a3b8")
+
+    cols = st.columns(3)
+    cols[0].metric(
+        "Stealth score",
+        f"{r.score_lexical:.3f}",
+        help="0 = anomalous synthetic content, 1 = looks like real news.",
+    )
+    cols[1].markdown(
+        f"<div style='text-align:center;'><b>Verdict</b><br>"
+        f"<span style='color:{color};font-size:1.4rem;font-weight:700;'>"
+        f"{r.verdict.upper()}</span></div>",
+        unsafe_allow_html=True,
+    )
+    cols[2].metric("Length", f"{r.char_count} chars")
+
+    feature_label = {
+        "sent_count":          "Sentences",
+        "avg_sent_len":        "Avg sent len",
+        "sent_len_std":        "Sent-len std",
+        "avg_word_len":        "Avg word len",
+        "type_token_ratio":    "Type/token ratio",
+        "punct_density":       "Punctuation density",
+        "hedge_count":         "Hedge words",
+        "retail_marker_count": "Retail markers",
+        "char_count":          "Character count",
+    }
+
+    if not compact:
+        st.markdown("**9 lexical features extracted from the input:**")
+    else:
+        st.caption("Lexical features (compact view):")
+
+    feat_cols = st.columns(3) if not compact else st.columns(2)
+    items = list(r.lexical_features.items())
+    for i, (key, val) in enumerate(items):
+        col = feat_cols[i % len(feat_cols)]
+        if isinstance(val, float):
+            val_str = f"{val:.2f}" if val < 100 else f"{val:.0f}"
+        else:
+            val_str = str(val)
+        col.markdown(
+            f"<div style='font-size:0.84rem;color:#475569;'>"
+            f"<b>{feature_label.get(key, key)}:</b> "
+            f"<code>{val_str}</code></div>",
+            unsafe_allow_html=True,
+        )
 
 
 def _render_verdict(verdict: SkepticVerdict, raw: str) -> None:

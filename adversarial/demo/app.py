@@ -121,10 +121,15 @@ _inject_css()
 def _build_api_key_input() -> None:
     """Let the user paste their own OpenAI key for the live tabs.
 
-    The key is set via os.environ for the duration of this Streamlit
-    session. It is never logged, never persisted to disk, and never
-    pushed to the deployment's environment. Without a key, both tabs
-    still work in cached-only mode.
+    SECURITY NOTE — the key is stored ONLY in this user's session_state
+    (a per-session dict isolated by Streamlit). It is NEVER written to
+    os.environ globally, because Streamlit Cloud runs all sessions in a
+    single Python process and a global env-var write would leak the key
+    to every other concurrent user.
+
+    The key is read back via ``ui_components.get_session_api_key()`` and
+    passed explicitly to each LLM call inside a temporary context
+    manager (``attack_runner._scoped_openai_key``).
     """
     with st.sidebar:
         env_key_present = bool(os.environ.get("OPENAI_API_KEY"))
@@ -142,16 +147,21 @@ def _build_api_key_input() -> None:
                         "OpenAI calls. With a key, you unlock free-form "
                         "ticker / date input and can generate fresh "
                         "adversarial content. Without a key, the demo runs "
-                        "from a pre-computed corpus. The key stays in this "
-                        "session only."
+                        "from a pre-computed corpus. The key stays in your "
+                        "browser session only — never written to a global "
+                        "process variable, never logged, never persisted."
                     ),
                     key="user_openai_key",
                     placeholder="sk-...",
                 )
                 if user_key.strip():
-                    os.environ["OPENAI_API_KEY"] = user_key.strip()
+                    # Store in session_state ONLY (do NOT write os.environ
+                    # — that would leak across concurrent user sessions on
+                    # Streamlit Cloud's single-process model).
+                    st.session_state["user_api_key"] = user_key.strip()
                     st.success("✅ Key set — live mode + free-form input unlocked.")
                 else:
+                    st.session_state.pop("user_api_key", None)
                     st.info(
                         "🔒 Cached-only mode. "
                         "[Get a key →](https://platform.openai.com/api-keys)"
