@@ -42,6 +42,13 @@ SEC_CASE_OPTIONS: list[tuple[str, str, str]] = [
     for s in SEEDS
 ]
 
+# Case IDs for which we ship pre-generated cached payloads for every
+# (ticker, date) pair in TICKER_DATE_OPTIONS. Any other SEC seed requires
+# a live LLM call (and therefore an OpenAI key in the session). The demo
+# UI uses this to hide unreachable options when the user hasn't supplied
+# a key.
+A1_CASES_WITH_CACHE = {"avon_fake_tender_2015", "craig_twitter_2015"}
+
 
 # ---------------------------------------------------------------------------
 # Result dataclasses (UI-friendly, decoupled from generator internals)

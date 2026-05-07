@@ -12,6 +12,7 @@ import streamlit as st
 
 from adversarial.demo import data_loader as dl
 from adversarial.demo.attack_runner import (
+    A1_CASES_WITH_CACHE,
     SEC_CASE_OPTIONS,
     TICKER_DATE_OPTIONS,
     CrossChannelResult,
@@ -373,12 +374,28 @@ def render_attack_lab_tab() -> None:
 def _render_a1_panel(api_key_present: bool) -> None:
     cols = st.columns(3)
 
-    case_options = SEC_CASE_OPTIONS
+    # Only the 2 cases below ship with pre-generated cached payloads for
+    # every ticker. The other 6 SEC seeds require a live LLM generation,
+    # which needs an API key. So when no key is present, hide the
+    # uncached options to prevent silent cache-miss → key-required
+    # error.
+    if api_key_present:
+        case_options = SEC_CASE_OPTIONS
+    else:
+        case_options = [c for c in SEC_CASE_OPTIONS if c[0] in A1_CASES_WITH_CACHE]
+
     case_idx = cols[0].selectbox(
         "SEC seed case",
         options=range(len(case_options)),
         format_func=lambda i: case_options[i][1],
-        key="a1_case_idx",
+        key=f"a1_case_idx_{int(api_key_present)}",  # reset selection on key state change
+        help=(
+            "Only seeds with shipped cached payloads are listed because no "
+            "API key is set. Paste a key in the sidebar to unlock the other "
+            "6 SEC seeds."
+            if not api_key_present
+            else None
+        ),
     )
     case_id, _, native_dir = case_options[case_idx]
 
