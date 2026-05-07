@@ -332,10 +332,7 @@ def _poll_attack_job(
             st.session_state.pop(f"{key}_job", None)
         else:
             st.info(
-                f"⏳ **Generating in background** ({int(job.elapsed_seconds)} s elapsed). "
-                f"You can **switch to another attack** to talk about it — "
-                f"the result will be waiting here when you switch back. "
-                f"Click **🔄 Refresh** below to check now."
+                f"⏳ **Generating** — {int(job.elapsed_seconds)} s elapsed"
             )
             if st.button("🔄 Refresh", key=f"{key}_refresh"):
                 st.rerun()
