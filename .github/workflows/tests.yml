@@ -9,7 +9,7 @@ on:
 
 jobs:
   adversarial-unit-tests:
-    name: Adversarial unit tests (Python ${{ matrix.python-version }})
+    name: Unit tests + minimal repro (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -30,11 +30,32 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-          pip install pytest
+          pip install pytest pytest-cov
 
-      - name: Run adversarial unit tests
+      - name: Run adversarial unit tests with coverage
+        # 19 unit tests across attacks (A1/A2/A5 plumbing), defenses
+        # (anomaly filter), and judges (stealth metric). All offline,
+        # no API key required.
         run: |
           pytest tests/test_adversarial_memory_poisoning.py \
                  tests/test_adversarial_news_injection.py \
                  tests/test_adversarial_anomaly_filter.py \
+                 --cov=adversarial \
+                 --cov-report=term-missing \
+                 --cov-report=xml \
                  -v
+
+      - name: Run end-to-end minimal-reproduction script
+        # Verifies that imports, cached payloads, A5 local generation,
+        # stealth metric, Skeptic cached fallback, and anomaly filter
+        # all work end-to-end on a clean machine. Exits 0 = pass.
+        run: |
+          python -m adversarial.reproduce_minimal
+
+      - name: Upload coverage report
+        if: matrix.python-version == '3.10'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 14
