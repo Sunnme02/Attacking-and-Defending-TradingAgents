@@ -17,6 +17,12 @@ watch the defenses respond in real time. (Bring your own OpenAI key; details bel
 📄 **Paper:** [`paper/5293report.pdf`](paper/5293report.pdf) — *Attacking and Defending
 Multi-Agent LLM Trading Systems*, Columbia STAT GR5293 final project, 2026.
 
+## 🎬 Demo video
+
+https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/raw/main/paper/demo.mp4
+
+---
+
 This repository is a **fork of [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents)**.
 The upstream framework is left intact; all of our research code,
 experiments, paper, and demo live under [`adversarial/`](adversarial/) and
