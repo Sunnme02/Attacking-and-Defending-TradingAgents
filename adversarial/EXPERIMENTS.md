@@ -3,10 +3,8 @@
 This document lists every experiment in the paper, the exact command
 that produced it, and where its output lives. The full numerical
 results — including locked Findings F1–F5 with cluster-bootstrap CIs
-and BH-corrected p-values — are in
-[`RESULTS.md`](RESULTS.md). The paper-writing companion
-[`REPORT.md`](REPORT.md) maps individual paper claims back to the
-batches listed below.
+and BH-corrected p-values — are reported in the paper itself
+([`paper/5293report.pdf`](../paper/5293report.pdf), §6).
 
 > **Cost note.** Re-running the entire 1,210-trial campaign costs
 > roughly USD $20–30 in OpenAI API charges (gpt-4o-mini × 1,210 ×
