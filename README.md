@@ -20,7 +20,18 @@ breaks the perception tier (Δ = −0.42, p<sub>BH</sub> < 0.0001) and
 no single defense is enough on its own. **Defense composition is the
 unit of analysis.**
 
-📄 [Read the paper](paper/5293report.pdf) · 🌐 [Try the live demo](https://attacking-and-defending-trading-agents.streamlit.app) · 🎬 [Watch the 60-s walkthrough](https://youtu.be/XRgy7UxwaLw)
+📄 [Read the paper](paper/5293report.pdf) · 🌐 [Try the live demo](https://attacking-and-defending-trading-agents.streamlit.app)
+
+---
+
+## 🎬 Demo
+
+[![60-second walkthrough — click to play](https://img.youtube.com/vi/XRgy7UxwaLw/maxresdefault.jpg)](https://youtu.be/XRgy7UxwaLw)
+
+> ▶ Click the thumbnail above for a **60-second walkthrough**: generate a
+> fake-news article, send it to the Defense lab, and watch both the
+> Skeptic Agent and the Anomaly Filter respond. Try it yourself at the
+> [live URL](https://attacking-and-defending-trading-agents.streamlit.app).
 
 ---
 
