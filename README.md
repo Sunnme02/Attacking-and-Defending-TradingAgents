@@ -17,9 +17,14 @@ watch the defenses respond in real time. (Bring your own OpenAI key; details bel
 📄 **Paper:** [`paper/5293report.pdf`](paper/5293report.pdf) — *Attacking and Defending
 Multi-Agent LLM Trading Systems*, Columbia STAT GR5293 final project, 2026.
 
-## 🎬 Demo video
+## 🎬 Demo
 
-https://github.com/Sunnme02/Attacking-and-Defending-TradingAgents/raw/main/paper/demo.mp4
+[![Demo walkthrough — click to play](https://img.youtube.com/vi/XRgy7UxwaLw/maxresdefault.jpg)](https://youtu.be/XRgy7UxwaLw)
+
+> ▶ Click the thumbnail above. 60-second walkthrough: generate a fake-news
+> article, send it to the Defense lab, and watch both Skeptic + Anomaly
+> Filter respond. Try it yourself at the
+> [live URL](https://attacking-and-defending-trading-agents.streamlit.app).
 
 ---
 
