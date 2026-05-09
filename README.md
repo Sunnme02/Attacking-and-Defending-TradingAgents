@@ -85,10 +85,13 @@ generation.
 ## Documentation
 
 - **[`adversarial/EXPERIMENTS.md`](adversarial/EXPERIMENTS.md)** — full reproduction guide for all 1,210 trials
+- **[`docs/RESULTS.md`](docs/RESULTS.md)** — headline numbers + per-attack / per-defense tables
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — attack and defense mechanism details
+- [`docs/ENGINEERING.md`](docs/ENGINEERING.md) — code / performance optimization + robust error handling
 - [`docs/DATA.md`](docs/DATA.md) — file-by-file layout, sizes, and expected outputs
 - [`docs/CI_TESTING.md`](docs/CI_TESTING.md) — what CI runs and which modules are tested
 - [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) — common errors and fixes
+- [`notebooks/findings_summary.ipynb`](notebooks/findings_summary.ipynb) — interactive analysis of the paper CSVs
 
 ---
 
